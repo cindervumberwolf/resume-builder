@@ -92,6 +92,15 @@ export function initializeDatabase(db: Database.Database): void {
       signal_name   TEXT PRIMARY KEY,
       aliases       TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS canvas_drafts (
+      draft_id    TEXT PRIMARY KEY,
+      user_id     TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+      title       TEXT NOT NULL DEFAULT 'Untitled',
+      latex_source TEXT NOT NULL,
+      created_at  TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   // Migrate legacy tables that may exist without user_id

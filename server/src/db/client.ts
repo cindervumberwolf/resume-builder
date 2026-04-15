@@ -338,6 +338,46 @@ export function loadTaxonomy(): Taxonomy {
   return { signal_taxonomy };
 }
 
+// ---- Canvas drafts ----
+
+export interface DraftRow {
+  draft_id: string;
+  user_id: string;
+  title: string;
+  latex_source: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export function upsertDraft(draft: { draft_id: string; user_id: string; title: string; latex_source: string }): DraftRow {
+  db().prepare(`
+    INSERT INTO canvas_drafts (draft_id, user_id, title, latex_source, updated_at)
+    VALUES (?, ?, ?, ?, datetime('now'))
+    ON CONFLICT(draft_id) DO UPDATE SET
+      title = excluded.title,
+      latex_source = excluded.latex_source,
+      updated_at = datetime('now')
+    WHERE canvas_drafts.user_id = excluded.user_id
+  `).run(draft.draft_id, draft.user_id, draft.title, draft.latex_source);
+  return getDraft(draft.draft_id, draft.user_id)!;
+}
+
+export function getDraft(draftId: string, userId: string): DraftRow | undefined {
+  return db().prepare(
+    "SELECT * FROM canvas_drafts WHERE draft_id = ? AND user_id = ?"
+  ).get(draftId, userId) as DraftRow | undefined;
+}
+
+export function listDrafts(userId: string): DraftRow[] {
+  return db().prepare(
+    "SELECT * FROM canvas_drafts WHERE user_id = ? ORDER BY updated_at DESC"
+  ).all(userId) as DraftRow[];
+}
+
+export function deleteDraft(draftId: string, userId: string): void {
+  db().prepare("DELETE FROM canvas_drafts WHERE draft_id = ? AND user_id = ?").run(draftId, userId);
+}
+
 export function findMatchingSignals(terms: string[]): string[] {
   const taxonomy = loadTaxonomy();
   const lowerTerms = terms.map(t => t.toLowerCase());

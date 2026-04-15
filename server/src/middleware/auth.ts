@@ -1,7 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { getAuthToken } from "../db/client.js";
 
-export interface AuthRequest extends Request {
+export interface AuthRequest<P = Record<string, string>> extends Request<P> {
   userId?: string;
 }
 

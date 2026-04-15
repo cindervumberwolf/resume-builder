@@ -96,18 +96,12 @@ app.get("/privacy", (_req, res) => {
 // --- OAuth (public) ---
 app.use("/oauth", oauthRouter);
 
-// --- Templates (public, read-only) ---
+// --- Template (public, read-only) ---
+
 app.get("/api/template/latex", (_req, res) => {
   res.json({
     template: LATEX_TEMPLATE,
-    instructions: "Fill all [placeholder] fields with actual content. Keep all LaTeX commands, packages, and structure unchanged. Section headers are in English.",
-  });
-});
-
-app.get("/api/template/latex/zh", (_req, res) => {
-  res.json({
-    template: LATEX_TEMPLATE_ZH,
-    instructions: "将所有 [占位符] 替换为实际内容。保留所有 LaTeX 命令、宏包和结构不变。章节标题已为中文，适合中文简历。",
+    instructions: "Fill all [placeholder] fields with actual content. Keep all LaTeX commands, packages, and structure unchanged.",
   });
 });
 
@@ -298,6 +292,21 @@ app.get("/admin/db/download", requireAdmin, (_req, res) => {
   if (!fs.existsSync(dbPath)) { res.status(404).json({ error: "DB file not found" }); return; }
   res.download(dbPath, "resume_builder.db");
 });
+
+// --- Canvas Editor (toggle via CANVAS_ENABLED=true) ---
+if (process.env.CANVAS_ENABLED === "true") {
+  import("./routes/canvas.js").then(({ canvasRouter }) => {
+    app.use("/canvas", requireAuth, canvasRouter);
+    app.use("/editor", express.static(path.resolve("editor-dist")));
+    // SPA fallback: any /editor/* path returns index.html
+    app.get("/editor/*", (_req, res) => {
+      const indexPath = path.resolve("editor-dist/index.html");
+      if (fs.existsSync(indexPath)) res.sendFile(indexPath);
+      else res.status(503).json({ error: "Canvas editor not built" });
+    });
+    console.log("Canvas editor enabled at /editor");
+  });
+}
 
 // --- Start ---
 const port = Number(process.env.PORT ?? 8787);

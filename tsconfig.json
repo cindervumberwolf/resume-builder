@@ -42,5 +42,7 @@
 
     "moduleResolution": "nodenext",
     "esModuleInterop": true,
-  }
+  },
+  "include": ["server/**/*"],
+  "exclude": ["editor", "editor-dist", "dist", "node_modules"]
 }

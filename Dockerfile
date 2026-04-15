@@ -14,6 +14,15 @@ COPY data/taxonomy.json ./seed-data/taxonomy.json
 
 RUN npx tsc
 
+# --- Canvas editor frontend (only built when CANVAS_ENABLED=true) ---
+FROM node:22-slim AS editor-builder
+ARG CANVAS_ENABLED=false
+WORKDIR /editor
+COPY editor/package*.json ./
+RUN if [ "$CANVAS_ENABLED" = "true" ]; then npm ci; fi
+COPY editor/ ./
+RUN if [ "$CANVAS_ENABLED" = "true" ]; then npm run build; fi
+
 FROM node:22-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -40,6 +49,8 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist/ ./dist/
 COPY --from=builder /app/seed-data/ ./seed-data/
+# Copy editor build output (will be empty dir if CANVAS_ENABLED=false)
+COPY --from=editor-builder /editor/dist/ ./editor-dist/
 
 ENV NODE_ENV=production
 ENV PORT=8787
