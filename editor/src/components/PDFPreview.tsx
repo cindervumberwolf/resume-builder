@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 interface Props {
   pdfUrl: string | null;
   compiling: boolean;
@@ -40,7 +42,7 @@ export function PDFPreview({ pdfUrl, compiling, error }: Props) {
   );
 }
 
-const centerStyle: React.CSSProperties = {
+const centerStyle: CSSProperties = {
   display: "flex",
   flexDirection: "column",
   alignItems: "center",
@@ -49,7 +51,7 @@ const centerStyle: React.CSSProperties = {
   background: "#fafafa",
 };
 
-const spinnerStyle: React.CSSProperties = {
+const spinnerStyle: CSSProperties = {
   width: 36,
   height: 36,
   border: "3px solid #e0e0e0",

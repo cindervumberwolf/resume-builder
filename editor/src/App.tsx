@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import type { CSSProperties } from "react";
 import { LaTeXEditor } from "./components/LaTeXEditor";
 import { PDFPreview } from "./components/PDFPreview";
 import { fetchTemplate, saveDraft, loadDraft, compileLaTeX, storeToken, listDrafts } from "./api";
@@ -158,7 +159,7 @@ export default function App() {
   );
 }
 
-const toolbarStyle: React.CSSProperties = {
+const toolbarStyle: CSSProperties = {
   display: "flex",
   alignItems: "center",
   gap: 8,
@@ -168,7 +169,7 @@ const toolbarStyle: React.CSSProperties = {
   flexShrink: 0,
 };
 
-const btnStyle: React.CSSProperties = {
+const btnStyle: CSSProperties = {
   padding: "6px 12px",
   border: "1px solid #d0d0d0",
   borderRadius: 6,
@@ -178,7 +179,7 @@ const btnStyle: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-const titleInputStyle: React.CSSProperties = {
+const titleInputStyle: CSSProperties = {
   padding: "5px 10px",
   border: "1px solid #d0d0d0",
   borderRadius: 6,
@@ -186,17 +187,17 @@ const titleInputStyle: React.CSSProperties = {
   width: 200,
 };
 
-const modalOverlayStyle: React.CSSProperties = {
+const modalOverlayStyle: CSSProperties = {
   position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)",
   display: "flex", alignItems: "center", justifyContent: "center", zIndex: 100,
 };
 
-const modalStyle: React.CSSProperties = {
+const modalStyle: CSSProperties = {
   background: "#fff", borderRadius: 8, padding: 24, minWidth: 420, maxHeight: "70vh",
   overflowY: "auto", boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
 };
 
-const draftRowStyle: React.CSSProperties = {
+const draftRowStyle: CSSProperties = {
   display: "flex", justifyContent: "space-between", alignItems: "center",
   padding: "10px 12px", borderRadius: 6, cursor: "pointer", marginBottom: 4,
   border: "1px solid #e0e0e0",
