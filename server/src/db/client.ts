@@ -294,6 +294,89 @@ export function getModuleWithBullets(moduleId: string, userId: string) {
   };
 }
 
+export function deleteModule(moduleId: string, userId: string): boolean {
+  const tx = db().transaction(() => {
+    db().prepare("DELETE FROM bullets WHERE parent_module_id = ? AND user_id = ?").run(moduleId, userId);
+    const result = db().prepare("DELETE FROM resume_modules WHERE module_id = ? AND user_id = ?").run(moduleId, userId);
+    return result.changes > 0;
+  });
+  return tx();
+}
+
+export function deleteBullet(bulletId: string, userId: string): boolean {
+  const result = db().prepare("DELETE FROM bullets WHERE bullet_id = ? AND user_id = ?").run(bulletId, userId);
+  return result.changes > 0;
+}
+
+export function patchModule(
+  moduleId: string,
+  userId: string,
+  fields: Partial<Pick<ExperienceModule, "organization" | "title" | "date_range" | "location" | "section" | "type" | "context_tags" | "base_priority">>,
+) {
+  const mod = db().prepare(
+    "SELECT * FROM resume_modules WHERE module_id = ? AND user_id = ?"
+  ).get(moduleId, userId) as ModuleRow | undefined;
+  if (!mod) return null;
+
+  const updated = {
+    organization: fields.organization ?? mod.organization,
+    title: fields.title ?? mod.title,
+    date_range: fields.date_range ?? mod.date_range,
+    location: fields.location ?? mod.location,
+    section: fields.section ?? mod.section,
+    type: fields.type ?? mod.type,
+    context_tags: fields.context_tags ? JSON.stringify(fields.context_tags) : mod.context_tags,
+    base_priority: fields.base_priority ?? mod.base_priority,
+  };
+
+  db().prepare(`
+    UPDATE resume_modules
+    SET organization = ?, title = ?, date_range = ?, location = ?,
+        section = ?, type = ?, context_tags = ?, base_priority = ?
+    WHERE module_id = ? AND user_id = ?
+  `).run(
+    updated.organization, updated.title, updated.date_range, updated.location,
+    updated.section, updated.type, updated.context_tags, updated.base_priority,
+    moduleId, userId,
+  );
+
+  return getModuleWithBullets(moduleId, userId);
+}
+
+export function patchBullet(
+  bulletId: string,
+  userId: string,
+  fields: Partial<Pick<BulletModule, "raw_fact" | "evidence_tags" | "skill_tags" | "role_fit_tags" | "rewrite_candidates">>,
+) {
+  const row = db().prepare(
+    "SELECT * FROM bullets WHERE bullet_id = ? AND user_id = ?"
+  ).get(bulletId, userId) as BulletRow | undefined;
+  if (!row) return null;
+
+  const updated = {
+    raw_fact: fields.raw_fact ?? row.raw_fact,
+    evidence_tags: fields.evidence_tags ? JSON.stringify(fields.evidence_tags) : row.evidence_tags,
+    skill_tags: fields.skill_tags ? JSON.stringify(fields.skill_tags) : row.skill_tags,
+    role_fit_tags: fields.role_fit_tags ? JSON.stringify(fields.role_fit_tags) : row.role_fit_tags,
+    rewrite_candidates: fields.rewrite_candidates ? JSON.stringify(fields.rewrite_candidates) : row.rewrite_candidates,
+  };
+
+  db().prepare(`
+    UPDATE bullets
+    SET raw_fact = ?, evidence_tags = ?, skill_tags = ?, role_fit_tags = ?, rewrite_candidates = ?
+    WHERE bullet_id = ? AND user_id = ?
+  `).run(
+    updated.raw_fact, updated.evidence_tags, updated.skill_tags,
+    updated.role_fit_tags, updated.rewrite_candidates,
+    bulletId, userId,
+  );
+
+  return parseBulletRow(
+    db().prepare("SELECT * FROM bullets WHERE bullet_id = ? AND user_id = ?")
+      .get(bulletId, userId) as BulletRow
+  );
+}
+
 // ---- Exemplar operations (global, not user-scoped) ----
 
 export function upsertExemplar(ex: Exemplar): void {

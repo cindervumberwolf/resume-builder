@@ -2,11 +2,21 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import type { CSSProperties } from "react";
 import { LaTeXEditor } from "./components/LaTeXEditor";
 import { PDFPreview } from "./components/PDFPreview";
+import { ModuleLibrary } from "./components/ModuleLibrary";
 import { fetchTemplate, saveDraft, loadDraft, compileLaTeX, storeToken, listDrafts } from "./api";
 
 type Status = "idle" | "saving" | "saved" | "compiling" | "error";
 
+function getInitialView(): "editor" | "modules" {
+  return new URLSearchParams(window.location.search).get("view") === "modules" ? "modules" : "editor";
+}
+
 export default function App() {
+  const [view, setView] = useState<"editor" | "modules">(getInitialView);
+
+  if (view === "modules") {
+    return <ModuleLibrary onBack={() => setView("editor")} />;
+  }
   const [latex, setLatex] = useState("");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [compiling, setCompiling] = useState(false);
@@ -107,6 +117,7 @@ export default function App() {
           <button style={btnStyle} onClick={() => handleLoadTemplate("zh")}>模板 (中文)</button>
           <button style={btnStyle} onClick={() => handleLoadTemplate("en")}>Template (EN)</button>
           <button style={btnStyle} onClick={handleOpenDrafts}>My Drafts</button>
+          <button style={btnStyle} onClick={() => setView("modules")}>Module Library</button>
         </div>
 
         <div style={{ flex: 1 }} />

@@ -2,6 +2,7 @@
 import {
   db, upsertJd, getJd, listJds,
   upsertModule, upsertBullet, listModules, getModuleWithBullets,
+  deleteModule, deleteBullet, patchModule, patchBullet,
   searchExemplars, findMatchingSignals,
 } from "./db/client.js";
 import { JdSchema, ExperienceModuleSchema, BulletModuleSchema } from "./types/index.js";
@@ -145,6 +146,34 @@ app.get("/api/modules/:id", requireAuth, (req: AuthRequest, res) => {
   const mod = getModuleWithBullets(String(req.params.id), req.userId!);
   if (!mod) { res.status(404).json({ error: "Module not found" }); return; }
   res.json(mod);
+});
+
+app.patch("/api/modules/:id", requireAuth, (req: AuthRequest, res) => {
+  try {
+    const result = patchModule(String(req.params.id), req.userId!, req.body);
+    if (!result) { res.status(404).json({ error: "Module not found" }); return; }
+    res.json(result);
+  } catch (e: any) { res.status(400).json({ error: e.message }); }
+});
+
+app.delete("/api/modules/:id", requireAuth, (req: AuthRequest, res) => {
+  const deleted = deleteModule(String(req.params.id), req.userId!);
+  if (!deleted) { res.status(404).json({ error: "Module not found" }); return; }
+  res.status(204).end();
+});
+
+app.patch("/api/modules/:mid/bullets/:bid", requireAuth, (req: AuthRequest, res) => {
+  try {
+    const result = patchBullet(String(req.params.bid), req.userId!, req.body);
+    if (!result) { res.status(404).json({ error: "Bullet not found" }); return; }
+    res.json(result);
+  } catch (e: any) { res.status(400).json({ error: e.message }); }
+});
+
+app.delete("/api/modules/:mid/bullets/:bid", requireAuth, (req: AuthRequest, res) => {
+  const deleted = deleteBullet(String(req.params.bid), req.userId!);
+  if (!deleted) { res.status(404).json({ error: "Bullet not found" }); return; }
+  res.status(204).end();
 });
 
 // --- JD ---

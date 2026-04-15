@@ -41,6 +41,84 @@ export async function listDrafts() {
   return data.drafts as { draft_id: string; title: string; updated_at: string }[];
 }
 
+// ---- Module library ----
+
+export interface ModuleBullet {
+  bullet_id: string;
+  parent_module_id: string;
+  raw_fact: string;
+  evidence_tags: string[];
+  skill_tags: string[];
+  role_fit_tags: string[];
+  rewrite_candidates: string[];
+}
+
+export interface ResumeModule {
+  module_id: string;
+  type: string;
+  section: string;
+  organization: string;
+  title: string;
+  date_range: string;
+  location?: string;
+  context_tags: string[];
+  base_priority: number;
+  source_type: string;
+  bullets: ModuleBullet[];
+}
+
+export async function fetchModules(): Promise<ResumeModule[]> {
+  const res = await fetch("/api/modules", { headers: authHeaders() });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.modules as ResumeModule[];
+}
+
+export async function patchModuleApi(
+  moduleId: string,
+  fields: Partial<Pick<ResumeModule, "organization" | "title" | "date_range" | "location" | "section" | "type" | "context_tags" | "base_priority">>,
+): Promise<ResumeModule> {
+  const res = await fetch(`/api/modules/${moduleId}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Failed to update module");
+  return res.json();
+}
+
+export async function deleteModuleApi(moduleId: string): Promise<void> {
+  const res = await fetch(`/api/modules/${moduleId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to delete module");
+}
+
+export async function patchBulletApi(
+  moduleId: string,
+  bulletId: string,
+  fields: Partial<Pick<ModuleBullet, "raw_fact" | "evidence_tags" | "skill_tags" | "role_fit_tags" | "rewrite_candidates">>,
+): Promise<ModuleBullet> {
+  const res = await fetch(`/api/modules/${moduleId}/bullets/${bulletId}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Failed to update bullet");
+  return res.json();
+}
+
+export async function deleteBulletApi(moduleId: string, bulletId: string): Promise<void> {
+  const res = await fetch(`/api/modules/${moduleId}/bullets/${bulletId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to delete bullet");
+}
+
+// ---- LaTeX compilation ----
+
 export async function compileLaTeX(latexSource: string): Promise<{ pdf_url: string; size_bytes: number }> {
   const res = await fetch("/api/latex/compile", {
     method: "POST",

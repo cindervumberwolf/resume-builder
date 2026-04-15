@@ -144,6 +144,43 @@ paths:
                   count:
                     type: integer
 
+  /api/modules/{id}:
+    get:
+      operationId: getModule
+      summary: Get a single module with its bullets
+      description: Retrieve one resume module by ID, including all associated bullets.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Module with bullets
+          content:
+            application/json:
+              schema:
+                type: object
+        "404":
+          description: Module not found
+    delete:
+      operationId: deleteModule
+      summary: Delete a stored resume module
+      description: Permanently delete a module and all its bullets. Use when the user explicitly asks to remove a module from the library.
+      x-openai-isConsequential: true
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Module deleted
+        "404":
+          description: Module not found
+
   /api/jd:
     post:
       operationId: storeJd
