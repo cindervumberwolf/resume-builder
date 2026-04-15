@@ -1,10 +1,8 @@
 import Database from "better-sqlite3";
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_DIR = path.resolve(__dirname, "../../../data");
+const DB_DIR = path.resolve(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "resume_builder.db");
 
 export function getDb(): Database.Database {

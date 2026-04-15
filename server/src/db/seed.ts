@@ -1,11 +1,9 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { db, upsertJd, upsertModule, upsertBullet, upsertExemplar, upsertTaxonomySignal } from "./client.js";
 import type { Jd, ExperienceModule, BulletModule, Exemplar, Taxonomy } from "../types/index.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dataDir = path.resolve(__dirname, "../../../data");
+const dataDir = path.resolve(process.cwd(), "data");
 
 function loadJson<T>(filePath: string): T {
   return JSON.parse(readFileSync(filePath, "utf-8"));
