@@ -1,4 +1,17 @@
-FROM node:22-slim AS base
+FROM node:22-slim AS builder
+
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY tsconfig.json ./
+COPY server/ ./server/
+COPY data/seed/ ./data/seed/
+COPY data/taxonomy.json ./data/taxonomy.json
+
+RUN npx tsc
+
+FROM node:22-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-xetex \
@@ -10,16 +23,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
-COPY tsconfig.json ./
-COPY server/ ./server/
-COPY data/seed/ ./data/seed/
-COPY data/taxonomy.json ./data/taxonomy.json
-
-RUN npx tsc
+COPY --from=builder /app/dist/ ./dist/
+COPY --from=builder /app/data/ ./data/
 
 ENV NODE_ENV=production
 ENV PORT=8787
