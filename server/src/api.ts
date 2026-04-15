@@ -29,6 +29,69 @@ app.get("/", (_req, res) => {
   res.json({ status: "ok", service: "resume-builder-api", version: "3.0.0" });
 });
 
+// --- Privacy Policy (public) ---
+app.get("/privacy", (_req, res) => {
+  res.setHeader("Content-Type", "text/html; charset=utf-8");
+  res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy – Resume Builder</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 720px; margin: 60px auto; padding: 0 24px; color: #1a1a1a; line-height: 1.7; }
+    h1 { font-size: 1.8rem; margin-bottom: 4px; }
+    .updated { color: #666; font-size: 0.9rem; margin-bottom: 40px; }
+    h2 { font-size: 1.1rem; margin-top: 32px; }
+    p, li { font-size: 0.97rem; }
+    ul { padding-left: 20px; }
+    a { color: #0066cc; }
+  </style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: April 2026</p>
+
+  <p>This Privacy Policy describes how <strong>Resume Builder</strong> ("we", "our", or "the Service") collects, uses, and protects information when you use our ChatGPT-integrated resume optimization service.</p>
+
+  <h2>1. Information We Collect</h2>
+  <ul>
+    <li><strong>Account credentials</strong>: email address and hashed password when you register.</li>
+    <li><strong>Resume content</strong>: job descriptions, resume modules, and bullet points you submit through the GPT interface.</li>
+    <li><strong>Compiled outputs</strong>: LaTeX source and generated PDF files created during your session.</li>
+    <li><strong>Authentication tokens</strong>: short-lived access tokens and refresh tokens used to maintain your session.</li>
+  </ul>
+
+  <h2>2. How We Use Your Information</h2>
+  <ul>
+    <li>To provide and personalize the resume building service.</li>
+    <li>To store and retrieve your resume modules across sessions.</li>
+    <li>To compile your resume into PDF format on our servers.</li>
+    <li>We do <strong>not</strong> sell, rent, or share your data with third parties.</li>
+    <li>We do <strong>not</strong> use your resume content to train AI models.</li>
+  </ul>
+
+  <h2>3. Data Storage</h2>
+  <p>Your data is stored in an encrypted SQLite database hosted on Railway (railway.app) within the United States. Persistent storage is provided via Railway Volumes. We retain your data as long as your account is active.</p>
+
+  <h2>4. Data Deletion</h2>
+  <p>You may request deletion of your account and all associated data at any time by contacting us. Upon request, all your resume modules, job descriptions, and authentication records will be permanently deleted within 30 days.</p>
+
+  <h2>5. Security</h2>
+  <p>Passwords are stored using bcrypt hashing. All API communication is encrypted over HTTPS. Access tokens expire after 1 hour; refresh tokens expire after 30 days.</p>
+
+  <h2>6. Third-Party Services</h2>
+  <p>This service integrates with <strong>OpenAI ChatGPT</strong> via the Custom GPT Actions framework. Please refer to <a href="https://openai.com/policies/privacy-policy" target="_blank">OpenAI's Privacy Policy</a> for information on how OpenAI processes data within ChatGPT.</p>
+
+  <h2>7. Changes to This Policy</h2>
+  <p>We may update this policy from time to time. The "Last updated" date above will reflect any changes.</p>
+
+  <h2>8. Contact</h2>
+  <p>For privacy-related questions or data deletion requests, please reach out via the ChatGPT interface or the service administrator.</p>
+</body>
+</html>`);
+});
+
 // --- OAuth (public) ---
 app.use("/oauth", oauthRouter);
 
