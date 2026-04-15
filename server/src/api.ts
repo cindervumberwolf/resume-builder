@@ -8,6 +8,7 @@ import { JdSchema, ExperienceModuleSchema, BulletModuleSchema } from "./types/in
 import { latexRouter } from "./routes/latex.js";
 
 const app = express();
+app.set("trust proxy", 1); // respect X-Forwarded-Proto from Railway's reverse proxy
 app.use(express.json({ limit: "2mb" }));
 
 app.use((_req, res, next) => {

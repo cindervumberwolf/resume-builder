@@ -58,7 +58,8 @@ latexRouter.post("/compile", async (req, res) => {
     const pdfId = randomUUID();
     pdfStore.set(pdfId, { data: pdfData, createdAt: Date.now() });
 
-    const baseUrl = `${req.protocol}://${req.get("host")}`;
+    const proto = req.get("x-forwarded-proto") ?? req.protocol;
+    const baseUrl = `${proto}://${req.get("host")}`;
     res.json({
       success: true,
       pdf_url: `${baseUrl}/api/latex/pdf/${pdfId}`,
