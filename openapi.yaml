@@ -4,8 +4,8 @@ info:
   description: Backend API for the Resume Builder Custom GPT. Handles module storage, JD matching, and LaTeX compilation.
   version: 2.0.0
 servers:
-  - url: https://YOUR_RAILWAY_URL_HERE
-    description: Production server
+  - url: https://resume-builder-production-229e.up.railway.app
+    description: Production server (Railway)
 
 paths:
   /api/modules:
