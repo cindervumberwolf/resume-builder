@@ -208,9 +208,9 @@ const LATEX_TEMPLATE = `\\documentclass[10pt,a4paper]{article}
 \t% ---------- Education ----------
 \t\\section*{Education}
 \t\\textbf{[University Name]}
-\t\\begin{tabular*}{\\dimexpr\\textwidth-0.9em\\relax}{@{\\hspace{0.9em}}p{\\dimexpr\\textwidth-0.9em\\relax}@{}}
-\t    [Major / Degree] \\;|\\; \\textit{GPA:} [XX/100] \\hfill \\textit{Expected Graduation: [Month Year]} \\\\
-\t    \\textit{Relevant Coursework:} [Course 1], [Course 2], [Course 3]
+\t\\begin{tabular*}{\\textwidth}{@{}l@{\\extracolsep{\\fill}}r@{}}
+\t\t[Major] \\;|\\; \\textit{GPA: XX/4.00} & \\textit{Expected Graduation: Month Year} \\\\
+\t\t\\multicolumn{2}{@{}l@{}}{\\textit{Relevant Coursework: Course 1, Course 2}}
 \t\\end{tabular*}
 \t\\vspace{0.2em}
 
