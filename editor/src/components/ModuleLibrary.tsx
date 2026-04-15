@@ -506,12 +506,10 @@ function SectionGroup({ section, label, items, onAddModule, onDeleteSection, onU
 }) {
   return (
     <div style={sectionContainerStyle}>
-      {/* Section header */}
-      <HoverReveal style={{ justifyContent: "space-between", marginBottom: 8, borderBottom: `1px solid ${C.border}`, paddingBottom: 6 }}>
-        {/* Left: section label (always visible — we put it outside HoverReveal children) */}
-        {/* We wrap both label and buttons together but show buttons only on hover */}
+      {/* Section header — SectionHeader manages its own hover state */}
+      <div style={{ marginBottom: 8, borderBottom: `1px solid ${C.border}`, paddingBottom: 6 }}>
         <SectionHeader label={label} onAdd={onAddModule} onDelete={onDeleteSection} />
-      </HoverReveal>
+      </div>
 
       {items.map(mod => (
         <ModuleCard
