@@ -7,7 +7,7 @@ import os from "node:os";
 
 export const latexRouter = Router();
 
-const COMPILE_TIMEOUT_MS = 30_000;
+const COMPILE_TIMEOUT_MS = 60_000;
 const pdfStore = new Map<string, { data: Buffer; createdAt: number }>();
 
 setInterval(() => {
@@ -33,7 +33,7 @@ latexRouter.post("/compile", async (req, res) => {
     const pdflatexCmd = process.env.PDFLATEX_CMD ?? "xelatex";
 
     await new Promise<void>((resolve, reject) => {
-      const proc = execFile(
+      const proc =       execFile(
         pdflatexCmd,
         ["-interaction=nonstopmode", "-halt-on-error", "resume.tex"],
         { cwd: tmpDir!, timeout: COMPILE_TIMEOUT_MS },

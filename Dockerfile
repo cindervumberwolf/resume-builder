@@ -23,6 +23,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
+# Pre-warm fontconfig and xelatex font cache so first compilation is fast
+RUN fc-cache -fv && \
+    mkdir -p /tmp/warmup && \
+    printf '\\documentclass{article}\n\\usepackage{xeCJK}\n\\setCJKmainfont{Noto Sans CJK SC}\n\\begin{document}warmup\\end{document}' \
+      > /tmp/warmup/warmup.tex && \
+    cd /tmp/warmup && xelatex -interaction=nonstopmode warmup.tex || true && \
+    rm -rf /tmp/warmup
+
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
