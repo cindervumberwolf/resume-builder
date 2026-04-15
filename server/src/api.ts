@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import {
   db, upsertJd, getJd, listJds,
   upsertModule, upsertBullet, listModules, getModuleWithBullets,
@@ -299,7 +299,7 @@ if (process.env.CANVAS_ENABLED === "true") {
     app.use("/canvas", requireAuth, canvasRouter);
     app.use("/editor", express.static(path.resolve("editor-dist")));
     // SPA fallback: any /editor/* path returns index.html
-    app.get("/editor/*", (_req, res) => {
+    app.get("/editor/*splat", (_req, res) => {
       const indexPath = path.resolve("editor-dist/index.html");
       if (fs.existsSync(indexPath)) res.sendFile(indexPath);
       else res.status(503).json({ error: "Canvas editor not built" });
