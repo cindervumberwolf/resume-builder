@@ -117,6 +117,58 @@ export async function deleteBulletApi(moduleId: string, bulletId: string): Promi
   if (!res.ok) throw new Error("Failed to delete bullet");
 }
 
+const SECTION_TYPE_MAP: Record<string, string> = {
+  education: "education", experience: "experience", projects: "project",
+  leadership: "leadership", awards: "award", skills: "certification",
+};
+
+export async function addModuleApi(section: string): Promise<ResumeModule> {
+  const moduleId = crypto.randomUUID();
+  const body = {
+    modules: [{
+      module_id: moduleId,
+      type: SECTION_TYPE_MAP[section] ?? "experience",
+      section,
+      organization: "",
+      title: "",
+      date_range: "",
+      context_tags: [],
+      base_priority: 0.5,
+      source_type: "manual_input",
+    }],
+    bullets: [],
+  };
+  const res = await fetch("/api/modules", { method: "POST", headers: authHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) throw new Error("Failed to add module");
+  const modRes = await fetch(`/api/modules/${moduleId}`, { headers: authHeaders() });
+  if (!modRes.ok) throw new Error("Failed to fetch new module");
+  return modRes.json();
+}
+
+export async function addBulletApi(moduleId: string): Promise<ModuleBullet> {
+  const bulletId = crypto.randomUUID();
+  const body = {
+    modules: [],
+    bullets: [{
+      bullet_id: bulletId,
+      parent_module_id: moduleId,
+      raw_fact: "",
+      normalized_fact: { action: "", object: "" },
+      evidence_tags: [],
+      skill_tags: [],
+      role_fit_tags: [],
+      strength_score: { clarity: 0, quantification: 0, brand_signal: 0, transferability: 0 },
+      rewrite_candidates: [],
+    }],
+  };
+  const res = await fetch("/api/modules", { method: "POST", headers: authHeaders(), body: JSON.stringify(body) });
+  if (!res.ok) throw new Error("Failed to add bullet");
+  return {
+    bullet_id: bulletId, parent_module_id: moduleId, raw_fact: "",
+    evidence_tags: [], skill_tags: [], role_fit_tags: [], rewrite_candidates: [],
+  };
+}
+
 // ---- LaTeX compilation ----
 
 export async function compileLaTeX(latexSource: string): Promise<{ pdf_url: string; size_bytes: number }> {
