@@ -317,6 +317,27 @@ paths:
                           items:
                             type: object
 
+  /api/template/latex:
+    get:
+      operationId: getLatexTemplate
+      summary: Get the canonical LaTeX resume template
+      description: Returns the exact LaTeX template to use for all resume PDF generation. Always call this before compileLatex to ensure the correct template structure is used.
+      x-openai-isConsequential: false
+      responses:
+        "200":
+          description: LaTeX template returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  template:
+                    type: string
+                    description: Complete LaTeX template source with placeholder fields
+                  instructions:
+                    type: string
+                    description: Instructions for filling the template
+
   /api/latex/compile:
     post:
       operationId: compileLatex
