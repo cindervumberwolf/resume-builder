@@ -162,6 +162,38 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  module_id:
+                    type: string
+                  organization:
+                    type: string
+                  title:
+                    type: string
+                  section:
+                    type: string
+                  date_range:
+                    type: string
+                  location:
+                    type: string
+                  context_tags:
+                    type: array
+                    items:
+                      type: string
+                  base_priority:
+                    type: number
+                  bullets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        bullet_id:
+                          type: string
+                        raw_fact:
+                          type: string
+                        evidence_tags:
+                          type: array
+                          items:
+                            type: string
         "404":
           description: Module not found
     delete:
