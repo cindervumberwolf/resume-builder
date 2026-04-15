@@ -48,8 +48,8 @@ RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist/ ./dist/
 COPY --from=builder /app/seed-data/ ./seed-data/
-# Copy editor build output (will be empty dir if CANVAS_ENABLED=false)
-COPY --from=editor-builder /editor/dist/ ./editor-dist/
+# Copy editor build output (Vite outDir is ../editor-dist relative to /editor workdir)
+COPY --from=editor-builder /editor-dist/ ./editor-dist/
 
 ENV NODE_ENV=production
 ENV PORT=8787
