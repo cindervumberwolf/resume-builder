@@ -1,0 +1,143 @@
+% Resume template preserved from the user-provided LaTeX scaffold.
+% Goal: keep the existing layout, package stack, section style, and macro structure
+% with only minimal cleanup for easier GPT filling and export.
+% Compile with XeLaTeX.
+
+\documentclass[10pt,a4paper]{article}
+
+% ---------- Packages ----------
+\usepackage[margin=0.62in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{setspace}
+\usepackage{verbatim}
+\usepackage{xeCJK}
+
+\pagenumbering{gobble}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0pt}
+\setstretch{1.2}
+
+% ---------- Section formatting ----------
+\titleformat{\section}{\large}{}{0pt}{}[\titlerule]
+\titlespacing*{\section}{0pt}{6pt}{4pt}
+
+% ---------- List formatting ----------
+\setlist[itemize]{leftmargin=*, noitemsep, topsep=0pt, partopsep=0pt}
+
+% ---------- Custom commands ----------
+\newcommand{\subheading}[4]{
+    \begin{tabular*}{\textwidth}{@{}l@{\extracolsep{\fill}}r}
+        \textbf{#1} | \textit{#3} #2 & \textit{#4} \\
+    \end{tabular*}
+}
+
+\begin{document}
+
+% ---------- Header ----------
+\begin{center}
+    {\huge [Your Name]}\\
+    \vspace{0.26em}
+    \href{mailto:[your_email@example.com]}{[your_email@example.com]}
+    \hspace{6pt}|\hspace{6pt}
+    [Your Phone Number]
+    \hspace{6pt}|\hspace{6pt}
+    \href{[Your Link]}{[Your Link]}
+\end{center}
+
+% ---------- Education ----------
+\section*{Education}
+
+\textbf{[University Name]}
+
+\begin{tabular*}{\dimexpr\textwidth-0.9em\relax}{@{\hspace{0.9em}}p{\dimexpr\textwidth-0.9em\relax}@{}}
+    [Major / Degree] \;|\; \textit{GPA:} [XX/100] \hfill \textit{Expected Graduation: [Month Year]} \\
+    \textit{Relevant Coursework:} [Course 1], [Course 2], [Course 3], [Course 4]
+\end{tabular*}
+\vspace{0.2em}
+
+% ---------- Professional Experience ----------
+\section*{Professional Experience}
+
+\subheading
+{[Company / Organization Name]}
+{[City, Country]}
+{[Role, Team / Department,]}
+{[Month Year -- Month Year]}
+\begin{itemize}[leftmargin=2em]
+    \item [Accomplishment / responsibility / impact]
+    \item [Accomplishment / responsibility / impact]
+    \item [Accomplishment / responsibility / impact]
+\end{itemize}
+
+\vspace{1em}
+
+\subheading
+{[Company / Organization Name]}
+{[City, Country]}
+{[Role, Team / Department,]}
+{[Month Year -- Month Year]}
+\begin{itemize}[leftmargin=2em]
+    \item [Accomplishment / responsibility / impact]
+    \item [Accomplishment / responsibility / impact]
+\end{itemize}
+
+\vspace{0.2em}
+
+% ---------- Project Experience ----------
+\section*{Project Experience}
+
+\subheading
+{[Project Name]}
+{}
+{[Your Role]}
+{[Month Year -- Month Year]}
+\begin{itemize}[leftmargin=2em]
+    \item [What you built / researched / delivered]
+    \item [Methods / tools / framework used]
+    \item [Outcome / result / significance]
+\end{itemize}
+
+\vspace{0.5em}
+
+\subheading
+{[Project Name]}
+{}
+{[Your Role]}
+{[Month Year -- Month Year]}
+\begin{itemize}[leftmargin=2em]
+    \item [What you built / researched / delivered]
+    \item [Methods / tools / framework used]
+    \item [Outcome / result / significance]
+\end{itemize}
+
+\vspace{0.2em}
+
+% ---------- Activities ----------
+\section*{Activities}
+
+\subheading
+{[Activity / Competition / Organization Name]}
+{}
+{[Your Role]}
+{[Month Year -- Month Year]}
+\begin{itemize}[leftmargin=2em]
+    \item [What you did / what was achieved / award if any]
+\end{itemize}
+
+\vspace{0.5em}
+
+% ---------- Skills ----------
+\section*{Skills}
+
+\textbf{Research \& Analysis:} [Skill 1], [Skill 2], [Skill 3], [Skill 4]
+\vspace{0.2em}
+
+\textbf{Tools \& Programming:} [Tool 1]; [Tool 2]; [Tool 3]; [Tool 4]
+\vspace{0.2em}
+
+\textbf{Languages:} [Language 1]; [Language 2]; [Language 3]
+\vspace{0.5em}
+
+\end{document}

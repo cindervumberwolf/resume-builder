@@ -1,0 +1,68 @@
+{
+  "job_id": "jd_sample_bain_pta_2026",
+  "raw_text": "Part-Time Assistant (PTA) – Bain & Company, Shanghai\n\nAbout the Role:\nWe are looking for exceptional undergraduate or graduate students to join our Shanghai office as Part-Time Assistants. You will support case teams in research, analysis, and presentation preparation.\n\nResponsibilities:\n- Conduct market research and competitive analysis to support client engagements\n- Synthesize data from multiple sources into clear, actionable insights\n- Prepare high-quality PowerPoint presentations for client meetings\n- Assist in financial modeling and data analysis tasks\n- Collaborate with consultants and managers across different workstreams\n\nRequirements:\n- Currently enrolled in a top-tier undergraduate or graduate program\n- Strong analytical and problem-solving skills\n- Excellent communication skills in both English and Mandarin\n- Proficiency in Microsoft Excel and PowerPoint\n- Ability to work 2-3 days per week\n\nPreferred:\n- Previous internship experience in consulting, finance, or strategy\n- Leadership experience in student organizations\n- Familiarity with business frameworks and case analysis",
+  "meta": {
+    "company": "Bain & Company",
+    "team": "Consulting",
+    "location": "Shanghai",
+    "role_title": "Part-Time Assistant (PTA)",
+    "language": "en",
+    "seniority": "student_intern"
+  },
+  "hard_requirements": [
+    "market research",
+    "competitive analysis",
+    "data synthesis",
+    "powerpoint",
+    "excel",
+    "financial modeling",
+    "english",
+    "mandarin"
+  ],
+  "soft_requirements": [
+    "communication",
+    "teamwork",
+    "analytical thinking",
+    "problem solving"
+  ],
+  "preferred_signals": [
+    "consulting exposure",
+    "leadership",
+    "business frameworks",
+    "case analysis",
+    "strategy experience"
+  ],
+  "domain_tags": [
+    "consulting",
+    "strategy",
+    "generalist"
+  ],
+  "evidence_targets": [
+    {
+      "signal": "structured_analysis",
+      "examples": ["market sizing", "research synthesis", "framework thinking"],
+      "priority": 0.95
+    },
+    {
+      "signal": "client_communication",
+      "examples": ["slides", "stakeholder communication", "executive summary"],
+      "priority": 0.85
+    },
+    {
+      "signal": "quantitative_skills",
+      "examples": ["financial modeling", "excel", "data analysis"],
+      "priority": 0.80
+    },
+    {
+      "signal": "leadership",
+      "examples": ["team lead", "organized event", "student organization"],
+      "priority": 0.65
+    }
+  ],
+  "style_constraints": {
+    "resume_language": "en",
+    "bullet_style": "action_first",
+    "quant_preference": "high",
+    "tone": "professional_student"
+  }
+}

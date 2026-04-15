@@ -1,0 +1,17 @@
+node_modules/
+dist/
+*.db
+*.db-shm
+*.db-wal
+__pycache__/
+*.pyc
+.env
+
+# Raw crawl data (too large for git)
+resume-data-acquisition/data/raw/
+resume-data-acquisition/data/text/
+resume-data-acquisition/data/guides/
+resume-data-acquisition/data/exemplars/
+resume-data-acquisition/data/manifests/
+resume-data-acquisition/data/logs/
+resume-data-acquisition/data/inventory/

@@ -1,0 +1,31 @@
+school_id,school_name,qs_rank,qs_version,official_main_domain,country_or_region,primary_language,notes
+mit,Massachusetts Institute of Technology,1,2025,mit.edu,United States,en,
+cambridge,University of Cambridge,2,2025,cam.ac.uk,United Kingdom,en,
+oxford,University of Oxford,3,2025,ox.ac.uk,United Kingdom,en,
+harvard,Harvard University,4,2025,harvard.edu,United States,en,
+stanford,Stanford University,5,2025,stanford.edu,United States,en,
+caltech,California Institute of Technology,6,2025,caltech.edu,United States,en,
+imperial,Imperial College London,7,2025,imperial.ac.uk,United Kingdom,en,
+eth_zurich,ETH Zurich,8,2025,ethz.ch,Switzerland,en;de,Bilingual site
+ucl,University College London,9,2025,ucl.ac.uk,United Kingdom,en,
+uchicago,University of Chicago,10,2025,uchicago.edu,United States,en,
+nus,National University of Singapore,11,2025,nus.edu.sg,Singapore,en,
+upenn,University of Pennsylvania,12,2025,upenn.edu,United States,en,
+berkeley,University of California Berkeley,13,2025,berkeley.edu,United States,en,
+melbourne,University of Melbourne,14,2025,unimelb.edu.au,Australia,en,
+peking,Peking University,15,2025,pku.edu.cn,China,zh;en,Bilingual site
+ntu,Nanyang Technological University,16,2025,ntu.edu.sg,Singapore,en,
+lausanne,EPFL,17,2025,epfl.ch,Switzerland,en;fr,Bilingual site
+tsinghua,Tsinghua University,18,2025,tsinghua.edu.cn,China,zh;en,Bilingual site
+yale,Yale University,19,2025,yale.edu,United States,en,
+edinburgh,University of Edinburgh,20,2025,ed.ac.uk,United Kingdom,en,
+columbia,Columbia University,21,2025,columbia.edu,United States,en,
+princeton,Princeton University,22,2025,princeton.edu,United States,en,
+cornell,Cornell University,23,2025,cornell.edu,United States,en,
+hku,University of Hong Kong,24,2025,hku.hk,Hong Kong,en;zh,Bilingual site
+tokyo,University of Tokyo,25,2025,u-tokyo.ac.jp,Japan,ja;en,Bilingual site
+michigan,University of Michigan,26,2025,umich.edu,United States,en,
+johns_hopkins,Johns Hopkins University,27,2025,jhu.edu,United States,en,
+toronto,University of Toronto,28,2025,utoronto.ca,Canada,en,
+mcgill,McGill University,29,2025,mcgill.ca,Canada,en;fr,Bilingual site
+anu,Australian National University,30,2025,anu.edu.au,Australia,en,

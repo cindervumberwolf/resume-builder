@@ -1,0 +1,9 @@
+node_modules
+dist
+*.db-shm
+*.db-wal
+resume-data-acquisition
+public
+scripts
+.gitkeep
+*.md

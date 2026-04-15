@@ -1,0 +1,26 @@
+# Search query templates for source discovery
+# {domain} is replaced with the school's official_main_domain
+
+primary_domain_queries:
+  - 'site:{domain} resume'
+  - 'site:{domain} "resume template"'
+  - 'site:{domain} "sample resume"'
+  - 'site:{domain} "resume guide"'
+  - 'site:{domain} resume filetype:pdf'
+  - 'site:{domain} careers resume'
+  - 'site:{domain} "resume writing"'
+  - 'site:{domain} "resume tips" OR "resume checklist"'
+
+career_center_queries:
+  - 'site:{domain} career services resume'
+  - 'site:{domain} career center resume'
+  - 'site:{domain} career development resume'
+  - 'site:{domain} "action verbs" resume'
+
+school_level_queries:
+  - 'site:{domain} business school resume'
+  - 'site:{domain} engineering resume template'
+  - 'site:{domain} law school resume'
+  - 'site:{domain} MBA resume'
+  - 'site:{domain} undergraduate resume'
+  - 'site:{domain} graduate resume'

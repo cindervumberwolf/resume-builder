@@ -1,0 +1,361 @@
+openapi: 3.1.0
+info:
+  title: Resume Builder API
+  description: Backend API for the Resume Builder Custom GPT. Handles module storage, JD matching, and LaTeX compilation.
+  version: 2.0.0
+servers:
+  - url: https://YOUR_RAILWAY_URL_HERE
+    description: Production server
+
+paths:
+  /api/modules:
+    post:
+      operationId: storeModules
+      summary: Store parsed resume modules and bullets
+      description: Persist structured resume modules and their bullet-level evidence units into the database.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                modules:
+                  type: array
+                  description: Experience-level modules
+                  items:
+                    type: object
+                    required: [module_id, type, section, organization, title, date_range, context_tags, base_priority]
+                    properties:
+                      module_id:
+                        type: string
+                      type:
+                        type: string
+                        enum: [experience, project, education, leadership, award, certification]
+                      section:
+                        type: string
+                        enum: [experience, education, projects, leadership, skills, awards]
+                      organization:
+                        type: string
+                      title:
+                        type: string
+                      date_range:
+                        type: string
+                      context_tags:
+                        type: array
+                        items:
+                          type: string
+                      base_priority:
+                        type: number
+                      source_type:
+                        type: string
+                        default: parsed
+                bullets:
+                  type: array
+                  description: Bullet-level evidence units
+                  items:
+                    type: object
+                    required: [bullet_id, parent_module_id, raw_fact, normalized_fact, evidence_tags, skill_tags, role_fit_tags, strength_score]
+                    properties:
+                      bullet_id:
+                        type: string
+                      parent_module_id:
+                        type: string
+                      raw_fact:
+                        type: string
+                      normalized_fact:
+                        type: object
+                        properties:
+                          action:
+                            type: string
+                          object:
+                            type: string
+                          method:
+                            type: array
+                            items:
+                              type: string
+                          output:
+                            type: string
+                          metric:
+                            type: string
+                            nullable: true
+                      evidence_tags:
+                        type: array
+                        items:
+                          type: string
+                      skill_tags:
+                        type: array
+                        items:
+                          type: string
+                      role_fit_tags:
+                        type: array
+                        items:
+                          type: string
+                      strength_score:
+                        type: object
+                        properties:
+                          clarity:
+                            type: number
+                          quantification:
+                            type: number
+                          brand_signal:
+                            type: number
+                          transferability:
+                            type: number
+                      rewrite_candidates:
+                        type: array
+                        items:
+                          type: string
+                        default: []
+      responses:
+        "200":
+          description: Modules stored successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  modules_stored:
+                    type: integer
+                  bullets_stored:
+                    type: integer
+    get:
+      operationId: listModules
+      summary: List all stored resume modules with bullets
+      description: Retrieve all resume modules and their associated bullets from the database.
+      responses:
+        "200":
+          description: List of modules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  modules:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+
+  /api/jd:
+    post:
+      operationId: storeJd
+      summary: Store a structured job description
+      description: Persist a parsed JD with requirements, signals, and style constraints.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_id, raw_text, meta, hard_requirements, soft_requirements, preferred_signals, domain_tags, evidence_targets, style_constraints]
+              properties:
+                job_id:
+                  type: string
+                raw_text:
+                  type: string
+                meta:
+                  type: object
+                  properties:
+                    company:
+                      type: string
+                    team:
+                      type: string
+                    location:
+                      type: string
+                    role_title:
+                      type: string
+                    language:
+                      type: string
+                      default: en
+                    seniority:
+                      type: string
+                      default: student_intern
+                hard_requirements:
+                  type: array
+                  items:
+                    type: string
+                soft_requirements:
+                  type: array
+                  items:
+                    type: string
+                preferred_signals:
+                  type: array
+                  items:
+                    type: string
+                domain_tags:
+                  type: array
+                  items:
+                    type: string
+                evidence_targets:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      signal:
+                        type: string
+                      examples:
+                        type: array
+                        items:
+                          type: string
+                      priority:
+                        type: number
+                style_constraints:
+                  type: object
+                  properties:
+                    resume_language:
+                      type: string
+                      default: en
+                    bullet_style:
+                      type: string
+                      default: action_first
+                    quant_preference:
+                      type: string
+                      default: high
+                    tone:
+                      type: string
+                      default: professional_student
+      responses:
+        "200":
+          description: JD stored successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  job_id:
+                    type: string
+                  role:
+                    type: string
+                  company:
+                    type: string
+    get:
+      operationId: listJds
+      summary: List all stored job descriptions
+      description: Retrieve all stored JD records.
+      responses:
+        "200":
+          description: List of JDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jds:
+                    type: array
+                    items:
+                      type: object
+                  count:
+                    type: integer
+
+  /api/match:
+    post:
+      operationId: matchModules
+      summary: Match stored modules against a JD
+      description: Given a JD ID or skill signals, return the best-matching resume modules ranked by relevance.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_id:
+                  type: string
+                  description: ID of a stored JD to match against
+                domain_tags:
+                  type: array
+                  items:
+                    type: string
+                  description: Fallback domain tags if no JD stored
+                required_signals:
+                  type: array
+                  items:
+                    type: string
+                  description: Specific signals to match
+                max_modules:
+                  type: integer
+                  default: 5
+                max_bullets_per_module:
+                  type: integer
+                  default: 3
+      responses:
+        "200":
+          description: Ranked module matches
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ranked_modules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        module_id:
+                          type: string
+                        organization:
+                          type: string
+                        title:
+                          type: string
+                        score:
+                          type: number
+                        matched_tags:
+                          type: array
+                          items:
+                            type: string
+                        bullets:
+                          type: array
+                          items:
+                            type: object
+
+  /api/latex/compile:
+    post:
+      operationId: compileLatex
+      summary: Compile LaTeX source into a downloadable PDF
+      description: Accepts LaTeX source code, compiles it with XeLaTeX, and returns a URL to download the resulting PDF.
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [latex_source]
+              properties:
+                latex_source:
+                  type: string
+                  description: Complete LaTeX document source code
+      responses:
+        "200":
+          description: PDF compiled successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  pdf_url:
+                    type: string
+                    description: URL to download the compiled PDF
+                  size_bytes:
+                    type: integer
+        "422":
+          description: LaTeX compilation failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  error:
+                    type: string
+                  detail:
+                    type: string

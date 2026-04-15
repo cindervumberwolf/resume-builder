@@ -1,0 +1,29 @@
+# Global settings for resume data acquisition
+crawl:
+  max_concurrent: 3
+  request_delay_min_sec: 2
+  request_delay_max_sec: 5
+  request_timeout_sec: 30
+  max_retries: 3
+  user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36"
+
+search:
+  delay_min_sec: 5
+  delay_max_sec: 15
+  max_results_per_query: 20
+  max_queries_per_session: 25
+
+files:
+  max_download_size_mb: 50
+  allowed_extensions: [".pdf", ".doc", ".docx", ".ppt", ".pptx"]
+
+paths:
+  schools_master: "data/schools/schools_master.csv"
+  source_inventory: "data/inventory/source_inventory.jsonl"
+  asset_manifest: "data/manifests/assets.jsonl"
+  dedupe_index: "data/manifests/dedupe_index.jsonl"
+  crawl_log: "data/logs/crawl_log.jsonl"
+  exceptions_log: "data/logs/exceptions_log.jsonl"
+  qa_log: "data/logs/qa_log.jsonl"
+  raw_dir: "data/raw"
+  text_dir: "data/text"

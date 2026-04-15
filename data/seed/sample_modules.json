@@ -1,0 +1,180 @@
+{
+  "modules": [
+    {
+      "module_id": "exp_xhs_strategy_01",
+      "type": "experience",
+      "section": "experience",
+      "organization": "Xiaohongshu (RED)",
+      "title": "Strategy Intern",
+      "date_range": "2026-01 – 2026-03",
+      "context_tags": ["consumer internet", "strategy", "content platform"],
+      "base_priority": 0.85,
+      "source_type": "master_resume"
+    },
+    {
+      "module_id": "exp_research_assistant_01",
+      "type": "experience",
+      "section": "experience",
+      "organization": "University Economics Department",
+      "title": "Research Assistant",
+      "date_range": "2025-09 – 2025-12",
+      "context_tags": ["academic", "economics", "research"],
+      "base_priority": 0.70,
+      "source_type": "master_resume"
+    },
+    {
+      "module_id": "proj_case_comp_01",
+      "type": "project",
+      "section": "projects",
+      "organization": "National Case Competition",
+      "title": "Team Lead – Strategy Case",
+      "date_range": "2025-11",
+      "context_tags": ["consulting", "case competition", "strategy", "leadership"],
+      "base_priority": 0.75,
+      "source_type": "master_resume"
+    },
+    {
+      "module_id": "edu_university_01",
+      "type": "education",
+      "section": "education",
+      "organization": "Top University",
+      "title": "B.A. in Economics",
+      "date_range": "2023-09 – 2027-06",
+      "context_tags": ["economics", "finance", "quantitative"],
+      "base_priority": 0.90,
+      "source_type": "master_resume"
+    },
+    {
+      "module_id": "lead_consulting_club_01",
+      "type": "leadership",
+      "section": "leadership",
+      "organization": "University Consulting Club",
+      "title": "Vice President",
+      "date_range": "2025-03 – 2026-03",
+      "context_tags": ["consulting", "leadership", "events", "training"],
+      "base_priority": 0.65,
+      "source_type": "master_resume"
+    }
+  ],
+  "bullets": [
+    {
+      "bullet_id": "bullet_xhs_01",
+      "parent_module_id": "exp_xhs_strategy_01",
+      "raw_fact": "Built a daily AI/Agent industry tracking workflow using trusted sources and structured evaluation dimensions.",
+      "normalized_fact": {
+        "action": "built",
+        "object": "industry tracking workflow",
+        "method": ["source curation", "deduplication", "structured evaluation"],
+        "output": "3-5 high-priority daily signals",
+        "metric": null
+      },
+      "evidence_tags": ["research", "information synthesis", "structured thinking", "ai industry"],
+      "skill_tags": ["analysis", "prioritization", "market monitoring"],
+      "role_fit_tags": ["consulting", "strategy", "ib_generalist"],
+      "strength_score": { "clarity": 0.82, "quantification": 0.40, "brand_signal": 0.70, "transferability": 0.88 },
+      "rewrite_candidates": []
+    },
+    {
+      "bullet_id": "bullet_xhs_02",
+      "parent_module_id": "exp_xhs_strategy_01",
+      "raw_fact": "Conducted competitive analysis across 5 content platforms, identifying key differentiators in user engagement and monetization strategies.",
+      "normalized_fact": {
+        "action": "conducted",
+        "object": "competitive analysis",
+        "method": ["cross-platform comparison", "metric benchmarking"],
+        "output": "key differentiators identified",
+        "metric": "5 platforms"
+      },
+      "evidence_tags": ["competitive analysis", "market research", "benchmarking"],
+      "skill_tags": ["analysis", "research", "strategic thinking"],
+      "role_fit_tags": ["consulting", "strategy", "product"],
+      "strength_score": { "clarity": 0.90, "quantification": 0.75, "brand_signal": 0.70, "transferability": 0.92 },
+      "rewrite_candidates": []
+    },
+    {
+      "bullet_id": "bullet_xhs_03",
+      "parent_module_id": "exp_xhs_strategy_01",
+      "raw_fact": "Prepared executive summary decks synthesizing market trends for senior leadership review.",
+      "normalized_fact": {
+        "action": "prepared",
+        "object": "executive summary decks",
+        "method": ["market trend synthesis"],
+        "output": "decks for senior leadership",
+        "metric": null
+      },
+      "evidence_tags": ["presentation", "synthesis", "client communication"],
+      "skill_tags": ["powerpoint", "executive communication", "synthesis"],
+      "role_fit_tags": ["consulting", "strategy"],
+      "strength_score": { "clarity": 0.85, "quantification": 0.30, "brand_signal": 0.65, "transferability": 0.80 },
+      "rewrite_candidates": []
+    },
+    {
+      "bullet_id": "bullet_ra_01",
+      "parent_module_id": "exp_research_assistant_01",
+      "raw_fact": "Collected and cleaned datasets of 10,000+ observations for professor's research on consumer behavior.",
+      "normalized_fact": {
+        "action": "collected and cleaned",
+        "object": "datasets",
+        "method": ["data collection", "data cleaning"],
+        "output": "research-ready datasets",
+        "metric": "10,000+ observations"
+      },
+      "evidence_tags": ["data analysis", "research", "quantitative skills"],
+      "skill_tags": ["excel", "data cleaning", "statistics"],
+      "role_fit_tags": ["consulting", "research", "analytics"],
+      "strength_score": { "clarity": 0.88, "quantification": 0.85, "brand_signal": 0.50, "transferability": 0.75 },
+      "rewrite_candidates": []
+    },
+    {
+      "bullet_id": "bullet_ra_02",
+      "parent_module_id": "exp_research_assistant_01",
+      "raw_fact": "Ran regression analyses using Stata to test hypotheses on price elasticity, contributing to a working paper.",
+      "normalized_fact": {
+        "action": "ran",
+        "object": "regression analyses",
+        "method": ["Stata", "hypothesis testing"],
+        "output": "contributed to working paper",
+        "metric": null
+      },
+      "evidence_tags": ["statistical analysis", "academic research", "quantitative skills"],
+      "skill_tags": ["stata", "regression", "hypothesis testing"],
+      "role_fit_tags": ["research", "analytics", "consulting"],
+      "strength_score": { "clarity": 0.80, "quantification": 0.50, "brand_signal": 0.55, "transferability": 0.65 },
+      "rewrite_candidates": []
+    },
+    {
+      "bullet_id": "bullet_case_01",
+      "parent_module_id": "proj_case_comp_01",
+      "raw_fact": "Led a 4-person team to develop a market entry strategy for a Fortune 500 consumer goods company, winning regional finals.",
+      "normalized_fact": {
+        "action": "led",
+        "object": "market entry strategy",
+        "method": ["team leadership", "strategy development"],
+        "output": "won regional finals",
+        "metric": "4-person team"
+      },
+      "evidence_tags": ["leadership", "strategy", "teamwork", "case analysis"],
+      "skill_tags": ["strategic planning", "team management", "presentation"],
+      "role_fit_tags": ["consulting", "strategy", "leadership"],
+      "strength_score": { "clarity": 0.92, "quantification": 0.70, "brand_signal": 0.80, "transferability": 0.90 },
+      "rewrite_candidates": []
+    },
+    {
+      "bullet_id": "bullet_club_01",
+      "parent_module_id": "lead_consulting_club_01",
+      "raw_fact": "Organized 12 weekly case workshops for 60+ members, improving average case performance scores by 25%.",
+      "normalized_fact": {
+        "action": "organized",
+        "object": "case workshops",
+        "method": ["event planning", "curriculum design"],
+        "output": "improved case performance",
+        "metric": "12 workshops, 60+ members, 25% improvement"
+      },
+      "evidence_tags": ["leadership", "training", "event organization"],
+      "skill_tags": ["event management", "teaching", "curriculum design"],
+      "role_fit_tags": ["consulting", "leadership"],
+      "strength_score": { "clarity": 0.90, "quantification": 0.95, "brand_signal": 0.60, "transferability": 0.70 },
+      "rewrite_candidates": []
+    }
+  ]
+}

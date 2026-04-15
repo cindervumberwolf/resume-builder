@@ -1,0 +1,135 @@
+{
+  "signal_taxonomy": {
+    "structured_analysis": [
+      "market research",
+      "competitive analysis",
+      "information synthesis",
+      "frameworking",
+      "data analysis",
+      "market sizing",
+      "industry analysis",
+      "benchmarking"
+    ],
+    "quantitative_skills": [
+      "financial modeling",
+      "excel",
+      "data modeling",
+      "statistical analysis",
+      "valuation",
+      "forecasting",
+      "numerical reasoning"
+    ],
+    "client_communication": [
+      "slides",
+      "presentation",
+      "stakeholder communication",
+      "client-facing",
+      "deck preparation",
+      "executive summary",
+      "report writing"
+    ],
+    "ownership": [
+      "built from scratch",
+      "led independently",
+      "drove execution",
+      "end-to-end ownership",
+      "initiative",
+      "self-directed"
+    ],
+    "teamwork": [
+      "cross-functional collaboration",
+      "team coordination",
+      "mentoring",
+      "peer support",
+      "group project"
+    ],
+    "leadership": [
+      "team lead",
+      "managed team",
+      "directed project",
+      "organized event",
+      "founded club",
+      "president",
+      "vice president"
+    ],
+    "problem_solving": [
+      "troubleshooting",
+      "root cause analysis",
+      "process improvement",
+      "optimization",
+      "debugging",
+      "creative solution"
+    ],
+    "technical_skills": [
+      "programming",
+      "python",
+      "sql",
+      "javascript",
+      "machine learning",
+      "software development",
+      "automation",
+      "AI",
+      "cloud computing"
+    ],
+    "research": [
+      "literature review",
+      "academic research",
+      "thesis",
+      "survey design",
+      "qualitative research",
+      "interviews",
+      "ethnography"
+    ],
+    "writing_editing": [
+      "copywriting",
+      "content creation",
+      "editing",
+      "proofreading",
+      "translation",
+      "blog writing"
+    ],
+    "project_management": [
+      "timeline management",
+      "milestone tracking",
+      "agile",
+      "scrum",
+      "deliverable management",
+      "resource allocation"
+    ],
+    "business_development": [
+      "sales",
+      "lead generation",
+      "partnership",
+      "negotiation",
+      "pitch",
+      "proposal writing",
+      "account management"
+    ],
+    "strategy": [
+      "strategic planning",
+      "go-to-market",
+      "growth strategy",
+      "market entry",
+      "business strategy",
+      "scenario analysis"
+    ],
+    "product_thinking": [
+      "user research",
+      "product design",
+      "feature prioritization",
+      "A/B testing",
+      "UX design",
+      "product roadmap",
+      "requirements gathering"
+    ],
+    "marketing": [
+      "social media",
+      "brand management",
+      "campaign management",
+      "content marketing",
+      "SEO",
+      "digital marketing",
+      "influencer marketing"
+    ]
+  }
+}

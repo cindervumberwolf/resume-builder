@@ -1,0 +1,187 @@
+# Rules for filtering discovered source pages
+# V2: strong/weak signal split + negative signals + source profiles
+
+inclusion_signals:
+  strong_title_keywords:
+    - "resume"
+    - "résumé"
+    - "resume guide"
+    - "resume template"
+    - "sample resume"
+    - "action verbs"
+    - "resume checklist"
+    - "how to write a resume"
+    - "cv guide"
+    - "cv template"
+    - "sample cv"
+    - "how to write a cv"
+
+  strong_body_keywords:
+    - "resume template"
+    - "sample resume"
+    - "resume guide"
+    - "resume writing"
+    - "action verbs"
+    - "resume checklist"
+    - "resume format"
+    - "bullet writing"
+    - "cv template"
+    - "sample cv"
+    - "cv guide"
+    - "cv writing"
+
+  weak_url_keywords:
+    - "resume"
+    - "résumé"
+    - "cv"
+    - "career"
+    - "careers"
+
+  strong_download_keywords:
+    - "download template"
+    - "sample resume"
+    - "sample cv"
+    - "resume examples"
+    - "cv examples"
+    - "action verbs"
+
+negative_signals:
+  url_keywords:
+    - "/blog/"
+    - "/news/"
+    - "/events/"
+    - "/event/"
+    - "/podcast/"
+    - "/stories/"
+    - "/alumni/"
+    - "/search?"
+    - "/catalog/"
+    - "searchworks"
+    - "reddit.com"
+    - "quora.com"
+
+  title_keywords:
+    - "employment report"
+    - "annual report"
+    - "alumni q&a"
+    - "student story"
+    - "webinar"
+    - "workshop"
+    - "career fair"
+    - "interview prep"
+    - "salary negotiation"
+    - "cover letter only"
+    - "narrative cv"
+    - "academic cv"
+
+  body_keywords:
+    - "searchworks"
+    - "catalog record"
+    - "call number"
+    - "isbn"
+    - "available at library"
+    - "request from offsite"
+    - "student story"
+    - "alumni q&a"
+    - "employment report"
+
+source_profiles:
+  ox.ac.uk:
+    cv_as_primary: true
+    preferred_hosts:
+      - "careers.ox.ac.uk"
+      - "www.careers.ox.ac.uk"
+    preferred_units:
+      - "careers service"
+    demote_title_keywords:
+      - "narrative cv"
+      - "academic cv"
+    reject_title_keywords:
+      - "employment report"
+      - "alumni q&a"
+      - "podcast"
+      - "career fair"
+    reject_hosts:
+      - "svn.oucs.ox.ac.uk"
+
+  cam.ac.uk:
+    cv_as_primary: true
+    preferred_hosts:
+      - "www.careers.cam.ac.uk"
+    preferred_units:
+      - "careers service"
+    demote_title_keywords:
+      - "narrative cv"
+      - "academic cv"
+    reject_title_keywords:
+      - "employment report"
+
+  stanford.edu:
+    cv_as_primary: false
+    preferred_hosts:
+      - "beam.stanford.edu"
+      - "careered.stanford.edu"
+    preferred_units:
+      - "beam"
+      - "career education"
+      - "biosci careers"
+      - "career center"
+    reject_hosts:
+      - "searchworks.stanford.edu"
+    reject_title_keywords:
+      - "searchworks"
+      - "catalog"
+      - "employment report"
+      - "student story"
+      - "alumni q&a"
+
+  mit.edu:
+    cv_as_primary: false
+    preferred_hosts:
+      - "capd.mit.edu"
+      - "cdo.mit.edu"
+    preferred_units:
+      - "capd"
+      - "career advising"
+      - "career development"
+    reject_hosts: []
+    reject_title_keywords: []
+
+  imperial.ac.uk:
+    cv_as_primary: true
+    preferred_hosts:
+      - "www.imperial.ac.uk/careers"
+    preferred_units:
+      - "careers service"
+    demote_title_keywords:
+      - "narrative cv"
+      - "academic cv"
+    reject_title_keywords:
+      - "employment report"
+
+  ucl.ac.uk:
+    cv_as_primary: true
+    preferred_hosts:
+      - "www.ucl.ac.uk/careers"
+    preferred_units:
+      - "careers"
+    demote_title_keywords:
+      - "narrative cv"
+      - "academic cv"
+    reject_title_keywords:
+      - "employment report"
+
+resource_types:
+  - resume_guide
+  - resume_template
+  - sample_resume
+  - checklist
+  - action_verbs
+  - format_guide
+  - bullet_writing_guide
+  - resume_workbook
+  - resume_tool
+  - cv_guide
+  - cv_template
+  - sample_cv
+  - mixed

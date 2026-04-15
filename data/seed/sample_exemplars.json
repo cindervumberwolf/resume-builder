@@ -1,0 +1,104 @@
+[
+  {
+    "exemplar_id": "wharton_consulting_01",
+    "source": "Wharton Career Services",
+    "track": "consulting",
+    "seniority": "student",
+    "section": "experience",
+    "bullet_text": "Synthesized market, competitor, and customer data to support go-to-market recommendations for a student venture.",
+    "style_features": {
+      "opens_with_action_verb": true,
+      "result_first": false,
+      "quantified": false,
+      "length_band": "medium",
+      "tone": "professional_compact"
+    },
+    "latent_tags": ["synthesis", "research", "recommendation", "market research"],
+    "anti_patterns": []
+  },
+  {
+    "exemplar_id": "hbs_consulting_01",
+    "source": "HBS Career Services",
+    "track": "consulting",
+    "seniority": "student",
+    "section": "experience",
+    "bullet_text": "Analyzed 200+ customer surveys to identify 3 key pain points, informing product redesign that increased NPS by 15 points.",
+    "style_features": {
+      "opens_with_action_verb": true,
+      "result_first": false,
+      "quantified": true,
+      "length_band": "long",
+      "tone": "professional_detailed"
+    },
+    "latent_tags": ["analysis", "customer research", "quantification", "impact"],
+    "anti_patterns": []
+  },
+  {
+    "exemplar_id": "insead_strategy_01",
+    "source": "INSEAD Career Development Centre",
+    "track": "strategy",
+    "seniority": "student",
+    "section": "experience",
+    "bullet_text": "Developed market entry framework for Southeast Asian expansion, evaluating regulatory, competitive, and demand-side factors across 4 markets.",
+    "style_features": {
+      "opens_with_action_verb": true,
+      "result_first": false,
+      "quantified": true,
+      "length_band": "long",
+      "tone": "analytical"
+    },
+    "latent_tags": ["strategy", "market entry", "framework", "international"],
+    "anti_patterns": []
+  },
+  {
+    "exemplar_id": "wharton_ib_01",
+    "source": "Wharton Career Services",
+    "track": "consulting",
+    "seniority": "student",
+    "section": "experience",
+    "bullet_text": "Built 3-statement financial model to evaluate potential acquisition target, supporting $50M+ deal recommendation.",
+    "style_features": {
+      "opens_with_action_verb": true,
+      "result_first": false,
+      "quantified": true,
+      "length_band": "medium",
+      "tone": "professional_compact"
+    },
+    "latent_tags": ["financial modeling", "valuation", "M&A", "quantification"],
+    "anti_patterns": []
+  },
+  {
+    "exemplar_id": "stanford_leadership_01",
+    "source": "Stanford GSB Career Management Center",
+    "track": "consulting",
+    "seniority": "student",
+    "section": "leadership",
+    "bullet_text": "Recruited and trained 15 new analysts for pro-bono consulting program, redesigning onboarding curriculum to reduce ramp-up time by 40%.",
+    "style_features": {
+      "opens_with_action_verb": true,
+      "result_first": false,
+      "quantified": true,
+      "length_band": "long",
+      "tone": "leadership_heavy"
+    },
+    "latent_tags": ["leadership", "training", "recruitment", "process improvement"],
+    "anti_patterns": []
+  },
+  {
+    "exemplar_id": "hbs_product_01",
+    "source": "HBS Career Services",
+    "track": "consulting",
+    "seniority": "student",
+    "section": "experience",
+    "bullet_text": "Conducted 20+ user interviews to map customer journey, identifying 4 friction points that informed product roadmap prioritization.",
+    "style_features": {
+      "opens_with_action_verb": true,
+      "result_first": false,
+      "quantified": true,
+      "length_band": "long",
+      "tone": "professional_detailed"
+    },
+    "latent_tags": ["user research", "product", "customer journey", "prioritization"],
+    "anti_patterns": []
+  }
+]

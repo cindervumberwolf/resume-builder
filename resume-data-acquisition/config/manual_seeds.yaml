@@ -1,0 +1,13 @@
+# Manual seed URLs for schools (fallback when Google search is blocked)
+# Format: school_id -> list of known career center / resume resource URLs
+
+mit:
+  - "https://capd.mit.edu/resources/resume-guide/"
+  - "https://capd.mit.edu/channels/make-a-resume/"
+
+stanford:
+  - "https://beam.stanford.edu/resumes"
+  - "https://studentaffairs.stanford.edu/career-education"
+
+oxford:
+  - "https://www.careers.ox.ac.uk/cvs-and-cover-letters"
