@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import {
   db, upsertJd, getJd, listJds,
   upsertModule, upsertBullet, listModules, getModuleWithBullets,
@@ -82,6 +82,8 @@ const LATEX_TEMPLATE = `\\documentclass[10pt,a4paper]{article}
 \t% ---------- Education ----------
 \t\\section*{Education}
 \t\\textbf{[University Name]}
+\t\\vspace{0.3em}
+
 \t\\begin{tabular*}{\\textwidth}{@{}l@{\\extracolsep{\\fill}}r@{}}
 \t\t[Major] \\;|\\; \\textit{GPA: XX/4.00} & \\textit{Expected Graduation: Month Year} \\\\
 \t\t\\multicolumn{2}{@{}l@{}}{\\textit{Relevant Coursework: Course 1, Course 2}}
@@ -270,6 +272,54 @@ app.post("/api/match", requireAuth, (req: AuthRequest, res) => {
 
 // --- LaTeX (auth required for compile; template is public above) ---
 app.use("/api/latex", requireAuth, latexRouter);
+
+// --- Admin (protected by ADMIN_SECRET env var) ---
+function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction): void {
+  const secret = process.env.ADMIN_SECRET;
+  if (!secret) { res.status(503).json({ error: "Admin not configured" }); return; }
+  const auth = req.headers.authorization;
+  if (auth !== `Bearer ${secret}`) { res.status(401).json({ error: "Unauthorized" }); return; }
+  next();
+}
+
+import fs from "fs";
+import path from "path";
+
+app.get("/admin/health", requireAdmin, (_req, res) => {
+  const dbPath = path.resolve("data/resume_builder.db");
+  const exists = fs.existsSync(dbPath);
+  const size = exists ? fs.statSync(dbPath).size : 0;
+  res.json({ db_exists: exists, db_size_bytes: size, db_path: dbPath });
+});
+
+app.get("/admin/users", requireAdmin, (_req, res) => {
+  const rows = db().prepare("SELECT user_id, email, created_at FROM users ORDER BY created_at DESC").all();
+  res.json({ users: rows, count: rows.length });
+});
+
+app.delete("/admin/users/:userId", requireAdmin, (req, res) => {
+  const { userId } = req.params;
+  db().prepare("DELETE FROM users WHERE user_id = ?").run(userId);
+  res.json({ deleted: userId });
+});
+
+app.get("/admin/stats", requireAdmin, (_req, res) => {
+  const database = db();
+  const tables = ["users", "auth_tokens", "jd_schemas", "resume_modules", "bullets", "exemplars", "taxonomy"];
+  const stats: Record<string, number> = {};
+  for (const t of tables) {
+    try {
+      stats[t] = (database.prepare(`SELECT COUNT(*) as c FROM ${t}`).get() as { c: number }).c;
+    } catch { stats[t] = -1; }
+  }
+  res.json({ table_counts: stats });
+});
+
+app.get("/admin/db/download", requireAdmin, (_req, res) => {
+  const dbPath = path.resolve("data/resume_builder.db");
+  if (!fs.existsSync(dbPath)) { res.status(404).json({ error: "DB file not found" }); return; }
+  res.download(dbPath, "resume_builder.db");
+});
 
 // --- Start ---
 const port = Number(process.env.PORT ?? 8787);
