@@ -8,6 +8,9 @@ COPY tsconfig.json ./
 COPY server/ ./server/
 COPY data/seed/ ./data/seed/
 COPY data/taxonomy.json ./data/taxonomy.json
+# Also copy to seed-data/ so it survives Volume mount on /app/data
+COPY data/seed/ ./seed-data/seed/
+COPY data/taxonomy.json ./seed-data/taxonomy.json
 
 RUN npx tsc
 
@@ -36,7 +39,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 
 COPY --from=builder /app/dist/ ./dist/
-COPY --from=builder /app/data/ ./data/
+COPY --from=builder /app/seed-data/ ./seed-data/
 
 ENV NODE_ENV=production
 ENV PORT=8787

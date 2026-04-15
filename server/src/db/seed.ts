@@ -3,7 +3,7 @@ import path from "node:path";
 import { db, upsertJd, upsertModule, upsertBullet, upsertExemplar, upsertTaxonomySignal } from "./client.js";
 import type { Exemplar, Taxonomy } from "../types/index.js";
 
-const dataDir = path.resolve(process.cwd(), "data");
+const dataDir = path.resolve(process.cwd(), "seed-data");
 
 function loadJson<T>(filePath: string): T {
   return JSON.parse(readFileSync(filePath, "utf-8"));
