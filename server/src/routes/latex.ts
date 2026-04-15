@@ -79,7 +79,7 @@ latexRouter.post("/compile", async (req, res) => {
   }
 });
 
-function servePdf(req: import("express").Request, res: import("express").Response): void {
+function servePdf(req: import("express").Request<{ id: string }>, res: import("express").Response): void {
   const id = req.params.id;
   const entry = pdfStore.get(id);
   if (!entry) {
