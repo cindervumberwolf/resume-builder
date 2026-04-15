@@ -21,7 +21,9 @@ WORKDIR /editor
 COPY editor/package*.json ./
 RUN if [ "$CANVAS_ENABLED" = "true" ]; then npm ci; fi
 COPY editor/ ./
-RUN if [ "$CANVAS_ENABLED" = "true" ]; then npm run build; fi
+# Always create dist/ so the COPY below never fails when Canvas is disabled
+RUN mkdir -p dist && \
+    if [ "$CANVAS_ENABLED" = "true" ]; then npm run build; fi
 
 FROM node:22-slim
 
