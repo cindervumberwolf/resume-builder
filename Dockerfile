@@ -14,16 +14,13 @@ COPY data/taxonomy.json ./seed-data/taxonomy.json
 
 RUN npx tsc
 
-# --- Canvas editor frontend (only built when CANVAS_ENABLED=true) ---
+# --- Canvas editor frontend (always built; runtime CANVAS_ENABLED gates the routes) ---
 FROM node:22-slim AS editor-builder
-ARG CANVAS_ENABLED=false
 WORKDIR /editor
 COPY editor/package*.json ./
-RUN if [ "$CANVAS_ENABLED" = "true" ]; then npm ci; fi
+RUN npm ci
 COPY editor/ ./
-# Always create dist/ so the COPY below never fails when Canvas is disabled
-RUN mkdir -p dist && \
-    if [ "$CANVAS_ENABLED" = "true" ]; then npm run build; fi
+RUN npm run build
 
 FROM node:22-slim
 
