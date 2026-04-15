@@ -1,4 +1,4 @@
-﻿import express from "express";
+import express from "express";
 import {
   db, upsertJd, getJd, listJds,
   upsertModule, upsertBullet, listModules, getModuleWithBullets,
@@ -8,6 +8,7 @@ import { JdSchema, ExperienceModuleSchema, BulletModuleSchema } from "./types/in
 import { latexRouter, latexPublicRouter } from "./routes/latex.js";
 import { oauthRouter } from "./routes/oauth.js";
 import { requireAuth, type AuthRequest } from "./middleware/auth.js";
+import { LATEX_TEMPLATE, LATEX_TEMPLATE_ZH } from "./templates.js";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -95,105 +96,18 @@ app.get("/privacy", (_req, res) => {
 // --- OAuth (public) ---
 app.use("/oauth", oauthRouter);
 
-// --- Template (public, read-only) ---
-const LATEX_TEMPLATE = `\\documentclass[10pt,a4paper]{article}
-
-% ---------- Packages ----------
-\\usepackage[margin=0.62in]{geometry}
-\\usepackage[hidelinks]{hyperref}
-\\usepackage{enumitem}
-\\usepackage{titlesec}
-\\usepackage{setspace}
-\\usepackage{verbatim}
-\\usepackage{xeCJK}
-\\setCJKmainfont{Noto Sans CJK SC}
-\\setCJKsansfont{Noto Sans CJK SC}
-\\setCJKmonofont{Noto Sans CJK SC}
-
-\\pagenumbering{gobble}
-\\setlength{\\parindent}{0pt}
-\\setlength{\\parskip}{0pt}
-\\setstretch{1.2}
-
-% ---------- Section formatting ----------
-\\titleformat{\\section}{\\large}{}{0pt}{}[\\titlerule]
-\\titlespacing*{\\section}{0pt}{6pt}{4pt}
-
-% ---------- List formatting ----------
-\\setlist[itemize]{leftmargin=*, noitemsep, topsep=0pt, partopsep=0pt}
-
-% ---------- Custom commands ----------
-\\newcommand{\\subheading}[4]{
-    \\begin{tabular*}{\\textwidth}{@{}l@{\\extracolsep{\\fill}}r}
-        \\textbf{#1} | \\textit{#3} #2 & \\textit{#4} \\\\
-    \\end{tabular*}
-}
-
-\\begin{document}
-
-\t% ---------- Header ----------
-\t\\begin{center}
-\t    {\\huge [Your Name]}\\\\
-\t    \\vspace{0.26em}
-\t    \\href{mailto:[your\\_email@example.com]}{[your\\_email@example.com]}
-\t    \\hspace{6pt}|\\hspace{6pt}
-\t    [Your Phone Number]
-\t    \\hspace{6pt}|\\hspace{6pt}
-\t    \\href{[Your Link]}{[Your Link]}
-\t\\end{center}
-
-\t% ---------- Education ----------
-\t\\section*{Education}
-\t\\textbf{[University Name]}
-\t\\vspace{0.3em}
-
-\t\\begin{tabular*}{\\textwidth}{@{}l@{\\extracolsep{\\fill}}r@{}}
-\t\t[Major] \\;|\\; \\textit{GPA: XX/4.00} & \\textit{Expected Graduation: Month Year} \\\\
-\t\t\\multicolumn{2}{@{}l@{}}{\\textit{Relevant Coursework: Course 1, Course 2}}
-\t\\end{tabular*}
-\t\\vspace{0.2em}
-
-\t% ---------- Professional Experience ----------
-\t\\section*{Professional Experience}
-\t\\subheading{[Company Name]}{[City, Country]}{[Role, Department]}{[Month Year -- Month Year]}
-\t\t\\begin{itemize}[leftmargin=2em]
-\t\t    \\item %bullet
-\t\t    \\item %bullet
-\t\t\\end{itemize}
-\t\\vspace{1em}
-
-\t% ---------- Project Experience ----------
-\t\\section*{Project Experience}
-\t\\subheading{[Project Name]}{}{[Your Role]}{[Month Year -- Month Year]}
-\t\t\\begin{itemize}[leftmargin=2em]
-\t\t    \\item %bullet
-\t\t    \\item %bullet
-\t\t\\end{itemize}
-\t\\vspace{0.5em}
-
-\t% ---------- Activities ----------
-\t\\section*{Activities}
-\t\\subheading{[Activity / Organization Name]}{}{[Your Role]}{[Month Year -- Month Year]}
-\t\t\\begin{itemize}[leftmargin=2em]
-\t\t    \\item %bullet
-\t\t\\end{itemize}
-\t\\vspace{0.5em}
-
-\t% ---------- Skills ----------
-\t\\section*{Skills}
-\t\\textbf{Research \\& Analysis:} [Skill 1], [Skill 2], [Skill 3]
-\t\\vspace{0.2em}
-\t\\textbf{Tools \\& Programming:} [Tool 1]; [Tool 2]; [Tool 3]
-\t\\vspace{0.2em}
-\t\\textbf{Languages:} [Language 1]; [Language 2]
-\t\\vspace{0.5em}
-
-\\end{document}`;
-
+// --- Templates (public, read-only) ---
 app.get("/api/template/latex", (_req, res) => {
   res.json({
     template: LATEX_TEMPLATE,
-    instructions: "Fill all [placeholder] fields with actual content. Keep all LaTeX commands, packages, and structure unchanged.",
+    instructions: "Fill all [placeholder] fields with actual content. Keep all LaTeX commands, packages, and structure unchanged. Section headers are in English.",
+  });
+});
+
+app.get("/api/template/latex/zh", (_req, res) => {
+  res.json({
+    template: LATEX_TEMPLATE_ZH,
+    instructions: "将所有 [占位符] 替换为实际内容。保留所有 LaTeX 命令、宏包和结构不变。章节标题已为中文，适合中文简历。",
   });
 });
 

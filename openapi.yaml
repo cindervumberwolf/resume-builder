@@ -320,8 +320,8 @@ paths:
   /api/template/latex:
     get:
       operationId: getLatexTemplate
-      summary: Get the canonical LaTeX resume template
-      description: Returns the exact LaTeX template to use for all resume PDF generation. Always call this before compileLatex to ensure the correct template structure is used.
+      summary: Get the English LaTeX resume template
+      description: Returns the English-language LaTeX template. Use this when the user wants an English resume. Always call this (or getLatexTemplateCn) before compileLatex.
       x-openai-isConsequential: false
       responses:
         "200":
@@ -333,7 +333,28 @@ paths:
                 properties:
                   template:
                     type: string
-                    description: Complete LaTeX template source with placeholder fields
+                    description: Complete LaTeX template source with English section headers
+                  instructions:
+                    type: string
+                    description: Instructions for filling the template
+
+  /api/template/latex/zh:
+    get:
+      operationId: getLatexTemplateCn
+      summary: Get the Chinese LaTeX resume template
+      description: Returns the Chinese-language LaTeX template with section headers in Chinese (教育背景、实习经历、项目经历、竞赛经历、技能). Use this when the user wants a Chinese resume.
+      x-openai-isConsequential: false
+      responses:
+        "200":
+          description: Chinese LaTeX template returned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  template:
+                    type: string
+                    description: Complete LaTeX template source with Chinese section headers
                   instructions:
                     type: string
                     description: Instructions for filling the template
