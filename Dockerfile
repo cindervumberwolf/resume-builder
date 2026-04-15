@@ -16,9 +16,12 @@ RUN npm ci --omit=dev
 
 COPY tsconfig.json ./
 COPY server/ ./server/
-COPY data/resume_builder.db ./data/resume_builder.db
+COPY data/seed/ ./data/seed/
+COPY data/taxonomy.json ./data/taxonomy.json
 
 RUN npx tsc
+
+RUN node dist/server/src/db/init.js && node dist/server/src/db/seed.js
 
 ENV NODE_ENV=production
 ENV PORT=8787
