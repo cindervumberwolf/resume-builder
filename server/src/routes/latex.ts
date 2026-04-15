@@ -6,6 +6,7 @@ import path from "node:path";
 import os from "node:os";
 
 export const latexRouter = Router();
+export const latexPublicRouter = Router();
 
 const COMPILE_TIMEOUT_MS = 60_000;
 const pdfStore = new Map<string, { data: Buffer; createdAt: number }>();
@@ -78,8 +79,9 @@ latexRouter.post("/compile", async (req, res) => {
   }
 });
 
-latexRouter.get("/pdf/:id", (req, res) => {
-  const entry = pdfStore.get(req.params.id);
+function servePdf(req: import("express").Request, res: import("express").Response): void {
+  const id = req.params.id;
+  const entry = pdfStore.get(id);
   if (!entry) {
     res.status(404).json({ error: "PDF not found or expired" });
     return;
@@ -87,4 +89,10 @@ latexRouter.get("/pdf/:id", (req, res) => {
   res.setHeader("Content-Type", "application/pdf");
   res.setHeader("Content-Disposition", 'attachment; filename="resume.pdf"');
   res.send(entry.data);
-});
+}
+
+// Mounted publicly at /api/latex/pdf/:id (no auth needed — UUID is the capability token)
+latexPublicRouter.get("/:id", servePdf);
+
+// Also reachable via the auth-gated router for backward compatibility
+latexRouter.get("/pdf/:id", servePdf);

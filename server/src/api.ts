@@ -5,7 +5,7 @@ import {
   searchExemplars, findMatchingSignals,
 } from "./db/client.js";
 import { JdSchema, ExperienceModuleSchema, BulletModuleSchema } from "./types/index.js";
-import { latexRouter } from "./routes/latex.js";
+import { latexRouter, latexPublicRouter } from "./routes/latex.js";
 import { oauthRouter } from "./routes/oauth.js";
 import { requireAuth, type AuthRequest } from "./middleware/auth.js";
 
@@ -333,7 +333,8 @@ app.post("/api/match", requireAuth, (req: AuthRequest, res) => {
   res.json({ ranked_modules: scored });
 });
 
-// --- LaTeX (auth required for compile; template is public above) ---
+// --- LaTeX: PDF download is public (UUID acts as capability token); compile requires auth ---
+app.use("/api/latex/pdf", latexPublicRouter);
 app.use("/api/latex", requireAuth, latexRouter);
 
 // --- Admin (protected by ADMIN_SECRET env var) ---
