@@ -1,0 +1,25 @@
+task_id,profile_id,jd_id,fit_tier,role_family,region,preferred_document_label,target_length,must_surface_module_ids,should_consider_module_ids,should_drop_module_ids,gold_focus
+T01,P01,J01,strong,consulting,China_APAC,Resume,1_page,P01M01|P01M02,P01M03,P01M04,"Emphasize market research, synthesis, slide-writing, and structured problem solving; keep leadership light."
+T02,P01,J02,strong,consulting,UK,CV_or_Resume,1_to_2_pages,P01M01|P01M02,P01M04,P01M03,UK consulting tailoring should be obvious; leadership evidence can stay if concise and polished.
+T03,P01,J03,medium,strategy_ops,Singapore_APAC,Resume,1_page,P01M01|P01M04,P01M02,P01M03,Show consumer/business analysis plus coordination and management-material support for strategy & ops.
+T04,P01,J12,medium,generalist_rotational,Singapore_APAC,Resume,1_page,P01M04|P01M02,P01M01,P01M03,"Show leadership promise, communication, and initiative rather than hyper-technical depth."
+T05,P02,J04,strong,product_ops,Singapore_APAC,Resume,1_page,P02M01|P02M02,P02M04,P02M03,Product ops core should come from operational tracking and process work; app project can show product fluency.
+T06,P02,J05,strong,product,USA,Resume,1_page,P02M02|P02M03,P02M01,P02M04,"For US APM, user research and prioritization should be front and center; ops internship supports execution."
+T07,P02,J03,medium,strategy_ops,Singapore_APAC,Resume,1_page,P02M01|P02M02,P02M04,P02M03,"Balance product and business execution; highlight dashboards, stakeholder coordination, and ambiguity handling."
+T08,P02,J12,medium,generalist_rotational,Singapore_APAC,Resume,1_page,P02M04|P02M02,P02M01,P02M03,Management associate task should foreground initiative and leadership with enough business structure.
+T09,P03,J06,strong,analytics,UK,CV_or_Resume,1_page,P03M01|P03M03,P03M02,P03M04,SQL/reporting and stakeholder-facing insights should dominate; capstone can strengthen analytical credibility.
+T10,P03,J07,strong,analytics,Switzerland_Europe,CV,1_to_2_pages,P03M01|P03M03,P03M04,P03M02,"BI role should foreground KPI reporting, dashboards, and structured communication; European CV can include strong skills section."
+T11,P03,J10,strong,research,UK,CV_or_Resume,1_to_2_pages,P03M02|P03M04,P03M03,P03M01,"Research assistant role should center evidence synthesis, writing, and careful quantitative work; fintech internship is secondary."
+T12,P03,J03,medium,strategy_ops,Singapore_APAC,Resume,1_page,P03M01|P03M03,P03M02,P03M04,Convert analytics evidence into business-performance and communication language for strategy & ops.
+T13,P04,J08,strong,finance,HongKong_APAC,Resume,1_page,P04M01|P04M02,P04M04,P04M03,"Corporate finance intern version should clearly signal valuation, comps, company research, and presentation polish."
+T14,P04,J09,strong,finance,USA,Resume,1_page,P04M01|P04M02,P04M03,P04M04,"US equity research version should show company research, concise writing, earnings summaries, and markets curiosity in the top third."
+T15,P04,J01,medium,consulting,China_APAC,Resume,1_page,P04M02|P04M04,P04M01,P04M03,"For consulting, convert finance experiences into analytical problem solving and concise recommendation work."
+T16,P04,J12,medium,generalist_rotational,Singapore_APAC,Resume,1_page,P04M03|P04M04,P04M02,P04M01,"Rotational program should emphasize initiative, communication, and broad business exposure more than pure markets depth."
+T17,P05,J11,strong,technical_ml,Switzerland_Europe,CV_or_Resume,1_to_2_pages,P05M01|P05M03,P05M02,P05M04,ML engineering version must foreground Python/PyTorch experimentation and engineering collaboration.
+T18,P05,J10,medium,research,UK,CV_or_Resume,1_to_2_pages,P05M01|P05M04,P05M02,P05M03,"Research assistant version should stress technical documentation, careful experimentation, and writing clarity."
+T19,P05,J07,medium,analytics,Switzerland_Europe,CV,1_to_2_pages,P05M02|P05M01,P05M03,P05M04,Zurich BI/ops version should convert manufacturing monitoring and analytical rigor into KPI and operations language.
+T20,P05,J05,medium,product,USA,Resume,1_page,P05M03|P05M01,P05M02,P05M04,"APM stretch should rely on technical communication, trade-off thinking, and user/problem framing from engineering projects."
+T21,P06,J01,stretch,consulting,China_APAC,Resume,1_page,P06M03|P06M02,P06M01,P06M04,"Sparse-profile consulting stretch: use case competition, coordination, and clean structure; inclusion discipline matters more than volume."
+T22,P06,J04,medium,product_ops,Singapore_APAC,Resume,1_page,P06M01|P06M02,P06M03,P06M04,"Product ops intern version should leverage tracking, coordination, feedback logs, and slide prep from ambassador/tutoring roles."
+T23,P06,J12,medium,generalist_rotational,Singapore_APAC,Resume,1_page,P06M02|P06M01,P06M03,P06M04,"Management associate version should foreground initiative, communication, service coordination, and broad potential."
+T24,P06,J02,stretch,consulting,UK,CV_or_Resume,1_to_2_pages,P06M03|P06M02,P06M01,P06M04,"UK consulting stretch should be sharply tailored, evidence-based, and typo-free; quality of selection matters more than amount of experience."

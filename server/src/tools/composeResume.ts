@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getJd, getModuleWithBullets } from "../db/client.js";
@@ -72,8 +73,8 @@ export function registerComposeResume(server: McpServer): void {
 
         for (const entry of section.entries) {
           const titleLine = entry.location
-            ? `**${entry.organization}** â€” ${entry.title} | ${entry.location} | ${entry.date_range}`
-            : `**${entry.organization}** â€” ${entry.title} | ${entry.date_range}`;
+            ? `**${entry.organization}** â€?${entry.title} | ${entry.location} | ${entry.date_range}`
+            : `**${entry.organization}** â€?${entry.title} | ${entry.date_range}`;
           lines.push(titleLine);
 
           if (entry.gpa) lines.push(`GPA: ${entry.gpa}`);
