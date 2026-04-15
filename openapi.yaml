@@ -13,6 +13,7 @@ paths:
       operationId: storeModules
       summary: Store parsed resume modules and bullets
       description: Persist structured resume modules and their bullet-level evidence units into the database.
+      x-openai-isConsequential: false
       requestBody:
         required: true
         content:
@@ -145,6 +146,7 @@ paths:
       operationId: storeJd
       summary: Store a structured job description
       description: Persist a parsed JD with requirements, signals, and style constraints.
+      x-openai-isConsequential: false
       requestBody:
         required: true
         content:
@@ -258,6 +260,7 @@ paths:
       operationId: matchModules
       summary: Match stored modules against a JD
       description: Given a JD ID or skill signals, return the best-matching resume modules ranked by relevance.
+      x-openai-isConsequential: false
       requestBody:
         required: true
         content:

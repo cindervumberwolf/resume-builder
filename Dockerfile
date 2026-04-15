@@ -19,6 +19,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-latex-extra \
     texlive-fonts-recommended \
     texlive-fonts-extra \
+    texlive-lang-chinese \
     fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
