@@ -4,7 +4,7 @@ import { EditorView, keymap, lineNumbers, highlightActiveLine } from "@codemirro
 import { defaultKeymap, history, historyKeymap } from "@codemirror/commands";
 import { StreamLanguage, indentOnInput } from "@codemirror/language";
 import { stex } from "@codemirror/legacy-modes/mode/stex";
-import { githubLight } from "@uiw/codemirror-theme-github";
+import { oneDark } from "@codemirror/theme-one-dark";
 
 interface Props {
   value: string;
@@ -27,7 +27,7 @@ export function LaTeXEditor({ value, onChange }: Props) {
     const state = EditorState.create({
       doc: value,
       extensions: [
-        githubLight,
+        oneDark,
         StreamLanguage.define(stex),
         lineNumbers(),
         highlightActiveLine(),
