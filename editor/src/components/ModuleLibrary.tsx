@@ -12,10 +12,10 @@ import {
 // ============================================================
 const C = {
   bg: "#FFFFFF",
-  toolbar: "#F3F3F3",       // was ECE9D8
+  toolbar: "#F3F3F3",
   card: "#FFFFFF",
   text: "#000000",
-  muted: "#808080",
+  muted: "#909090",
   keyword: "#091D26",
   string: "#091D26",
   comment: "#094044",
@@ -94,26 +94,23 @@ function InlineEdit({ value, onSave, style, placeholder, multiline }: {
 }
 
 // ============================================================
-// HoverReveal — 2-second linger before hiding
+// HoverReveal — 2-second linger
 // ============================================================
 function HoverReveal({ children, style }: { children: ReactNode; style?: CSSProperties }) {
   const [vis, setVis] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const show = () => {
-    if (timer.current) clearTimeout(timer.current);
-    setVis(true);
-  };
-  const scheduleHide = () => {
-    timer.current = setTimeout(() => setVis(false), 2000);
-  };
+  const show = () => { if (timer.current) clearTimeout(timer.current); setVis(true); };
+  const scheduleHide = () => { timer.current = setTimeout(() => setVis(false), 2000); };
 
   return (
-    <div onMouseEnter={show} onMouseLeave={scheduleHide} style={{ padding: "2px 0", ...style }}>
+    <div onMouseEnter={show} onMouseLeave={scheduleHide}
+      style={{ display: "flex", alignItems: "center", ...style }}>
       <div style={{
-        opacity: vis ? 1 : 0, maxHeight: vis ? 40 : 0, overflow: "hidden",
-        transition: "opacity 0.25s ease, max-height 0.25s ease",
+        opacity: vis ? 1 : 0,
+        transition: "opacity 0.2s ease",
         pointerEvents: vis ? "all" : "none",
+        display: "flex", alignItems: "center", gap: 4,
       }}>
         {children}
       </div>
@@ -122,40 +119,107 @@ function HoverReveal({ children, style }: { children: ReactNode; style?: CSSProp
 }
 
 // ============================================================
-// PairButtons
+// InlineConfirm — replaces window.confirm()
 // ============================================================
-function PairButtons({ onAdd, onRemove }: { onAdd: () => void; onRemove: () => void }) {
-  const base: CSSProperties = {
-    flex: 1, height: 28, border: `1px solid ${C.actionBorder}`, borderRadius: 8,
-    background: C.actionBg, cursor: "pointer", fontSize: 18, fontFamily: FONT,
-    color: C.text, display: "flex", alignItems: "center", justifyContent: "center",
-    transition: "background 0.15s",
-  };
+function InlineConfirm({ label, onConfirm, danger }: {
+  label: ReactNode; onConfirm: () => void; danger?: boolean;
+}) {
+  const [asking, setAsking] = useState(false);
+
+  if (asking) {
+    return (
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 12, fontFamily: FONT }}>
+        <span style={{ color: danger ? C.danger : C.text, fontSize: 12 }}>确认？</span>
+        <button onClick={() => { setAsking(false); onConfirm(); }} style={confirmBtnStyle(true)}>✓</button>
+        <button onClick={() => setAsking(false)} style={confirmBtnStyle(false)}>取消</button>
+      </span>
+    );
+  }
   return (
-    <div style={{ display: "flex", gap: 6, width: "100%" }}>
-      <button style={base} onClick={onAdd}
-        onMouseEnter={e => (e.currentTarget.style.background = C.actionHover)}
-        onMouseLeave={e => (e.currentTarget.style.background = C.actionBg)}>+</button>
-      <button style={{ ...base, color: C.danger }} onClick={onRemove}
-        onMouseEnter={e => (e.currentTarget.style.background = C.actionHover)}
-        onMouseLeave={e => (e.currentTarget.style.background = C.actionBg)}>−</button>
+    <span onClick={() => setAsking(true)} style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
+      {label}
+    </span>
+  );
+}
+
+const confirmBtnStyle = (primary: boolean): CSSProperties => ({
+  fontSize: 11, padding: "1px 5px", borderRadius: 3, cursor: "pointer", fontFamily: FONT,
+  border: `1px solid ${primary ? C.danger : C.border}`,
+  background: primary ? "#FFF0F0" : C.actionBg,
+  color: primary ? C.danger : C.text,
+});
+
+// ============================================================
+// SmallIconBtn — tiny icon button used in headers
+// ============================================================
+function SmallIconBtn({ children, onClick, title, style }: {
+  children: ReactNode; onClick?: () => void; title?: string; style?: CSSProperties;
+}) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button onClick={onClick} title={title}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        border: `1px solid ${C.actionBorder}`, borderRadius: 4, background: hov ? C.actionHover : C.actionBg,
+        cursor: "pointer", fontFamily: FONT, fontSize: 13, color: C.text,
+        padding: "2px 7px", lineHeight: 1.4, display: "inline-flex", alignItems: "center",
+        transition: "background 0.15s", ...style,
+      }}>
+      {children}
+    </button>
+  );
+}
+
+// ============================================================
+// DotMenuBtn — ⋯ popover for ModuleCard delete
+// ============================================================
+function DotMenuBtn({ onDelete }: { onDelete: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false); setConfirming(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+      <SmallIconBtn onClick={() => { setOpen(o => !o); setConfirming(false); }} title="更多操作"
+        style={{ fontSize: 16, padding: "0 6px", letterSpacing: 1 }}>⋯</SmallIconBtn>
+      {open && (
+        <div style={{
+          position: "absolute", right: 0, top: "calc(100% + 4px)", zIndex: 200,
+          background: C.card, border: `1px solid ${C.border}`, borderRadius: 6,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.15)", padding: 4, minWidth: 140, fontFamily: FONT,
+        }}>
+          {confirming ? (
+            <div style={{ padding: "6px 10px", fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ color: C.danger }}>确认删除？</span>
+              <button onClick={() => { setOpen(false); setConfirming(false); onDelete(); }} style={confirmBtnStyle(true)}>✓</button>
+              <button onClick={() => setConfirming(false)} style={confirmBtnStyle(false)}>取消</button>
+            </div>
+          ) : (
+            <div onClick={() => setConfirming(true)} style={menuItemStyle}>
+              <span style={{ color: C.danger }}>删除此子模块</span>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function SingleButton({ label, onClick, style }: { label: string; onClick: () => void; style?: CSSProperties }) {
-  const base: CSSProperties = {
-    height: 28, border: `1px solid ${C.actionBorder}`, borderRadius: 8, background: C.actionBg,
-    cursor: "pointer", fontSize: 18, fontFamily: FONT, color: C.text,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    transition: "background 0.15s", ...style,
-  };
-  return (
-    <button style={base} onClick={onClick}
-      onMouseEnter={e => (e.currentTarget.style.background = C.actionHover)}
-      onMouseLeave={e => (e.currentTarget.style.background = C.actionBg)}>{label}</button>
-  );
-}
+const menuItemStyle: CSSProperties = {
+  padding: "6px 12px", cursor: "pointer", fontSize: 13, borderRadius: 4,
+  transition: "background 0.12s",
+};
 
 // ============================================================
 // DragState — pointer-based, anchor to handle
@@ -165,7 +229,7 @@ interface DragState {
   insertIdx: number;
   ghostX: number;
   ghostY: number;
-  anchorX: number;   // cursor offset from ghost row top-left
+  anchorX: number;
   anchorY: number;
   ghostW: number;
   ghostH: number;
@@ -188,23 +252,17 @@ function BulletItem({ bullet, index, onSave, onDelete, onHandlePointerDown, drag
 
   const isDragging = dragState?.draggingIdx === index;
 
-  // Compute translateY for slot animation
   let translateY = 0;
   if (dragState && !isDragging) {
     const { draggingIdx, insertIdx, ghostH } = dragState;
-    if (draggingIdx < insertIdx) {
-      // dragged item moving down: items in (draggingIdx, insertIdx] slide up
-      if (index > draggingIdx && index <= insertIdx) translateY = -ghostH;
-    } else if (draggingIdx > insertIdx) {
-      // dragged item moving up: items in [insertIdx, draggingIdx) slide down
-      if (index >= insertIdx && index < draggingIdx) translateY = ghostH;
-    }
+    if (draggingIdx < insertIdx && index > draggingIdx && index <= insertIdx) translateY = -ghostH;
+    else if (draggingIdx > insertIdx && index >= insertIdx && index < draggingIdx) translateY = ghostH;
   }
 
   return (
     <div ref={rowRef}
       style={{
-        display: "flex", alignItems: "flex-start", position: "relative", padding: "3px 0",
+        display: "flex", alignItems: "flex-start", position: "relative", padding: "2px 0",
         opacity: isDragging ? 0 : 1,
         transform: `translateY(${translateY}px)`,
         transition: "transform 0.18s ease, opacity 0.15s ease",
@@ -214,31 +272,29 @@ function BulletItem({ bullet, index, onSave, onDelete, onHandlePointerDown, drag
       <div style={{ flex: 1, fontSize: 14, color: C.text, lineHeight: 1.6 }}>
         <InlineEdit value={bullet.raw_fact} onSave={onSave} placeholder="点击输入经历内容" multiline />
       </div>
-
-      {/* Drag handle */}
       <span ref={handleRef}
-        style={{ cursor: "grab", color: C.muted, fontSize: 16, userSelect: "none", padding: "2px 6px", lineHeight: 1, flexShrink: 0, alignSelf: "center" }}
+        style={{ cursor: "grab", color: C.muted, fontSize: 16, userSelect: "none", padding: "2px 5px", lineHeight: 1, flexShrink: 0, alignSelf: "center" }}
         title="拖动排序"
         onPointerDown={e => {
-          if (rowRef.current && handleRef.current) {
-            onHandlePointerDown(e, index, rowRef.current, handleRef.current);
-          }
+          if (rowRef.current && handleRef.current) onHandlePointerDown(e, index, rowRef.current, handleRef.current);
         }}
       >≡</span>
-
-      {/* Delete zone */}
-      <div
-        onMouseEnter={() => setDelVis(true)} onMouseLeave={() => setDelVis(false)}
-        style={{ width: 32, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}
-      >
-        <div onClick={onDelete} style={{
-          opacity: delVis ? 1 : 0, transition: "opacity 0.2s ease",
-          width: 26, height: 26, borderRadius: 8,
-          border: `1px solid ${C.actionBorder}`, background: C.actionBg,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", fontSize: 16, color: C.danger,
-          pointerEvents: delVis ? "all" : "none",
-        }}>−</div>
+      {/* Delete */}
+      <div onMouseEnter={() => setDelVis(true)} onMouseLeave={() => setDelVis(false)}
+        style={{ width: 28, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <InlineConfirm
+          onConfirm={onDelete}
+          danger
+          label={
+            <div style={{
+              opacity: delVis ? 1 : 0, transition: "opacity 0.18s ease",
+              width: 24, height: 24, borderRadius: 6,
+              border: `1px solid ${C.actionBorder}`, background: C.actionBg,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 16, color: C.danger, pointerEvents: delVis ? "all" : "none",
+            }}>−</div>
+          }
+        />
       </div>
     </div>
   );
@@ -257,48 +313,36 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
   onReorderBullets: (bullets: ModuleBullet[]) => void;
 }) {
   const [dragState, setDragState] = useState<DragState | null>(null);
+  const [headerHover, setHeaderHover] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const bulletsAreaRef = useRef<HTMLDivElement>(null);
 
-  const handlePointerDown = (e: React.PointerEvent, idx: number, rowEl: HTMLElement, handleEl: HTMLElement) => {
+  const handlePointerDown = (e: React.PointerEvent, idx: number, rowEl: HTMLElement, _handleEl: HTMLElement) => {
     e.preventDefault();
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
-
     const rowRect = rowEl.getBoundingClientRect();
-    const handleRect = handleEl.getBoundingClientRect();
-    // Anchor: pointer offset relative to row top-left, snapped to where the handle is
-    const anchorX = e.clientX - rowRect.left + (handleRect.left - rowRect.left);
-    const anchorY = e.clientY - rowRect.top;
-
     setDragState({
-      draggingIdx: idx,
-      insertIdx: idx,
-      ghostX: e.clientX,
-      ghostY: e.clientY,
-      anchorX: e.clientX - rowRect.left,
-      anchorY: e.clientY - rowRect.top,
-      ghostW: rowRect.width,
-      ghostH: rowRect.height,
+      draggingIdx: idx, insertIdx: idx,
+      ghostX: e.clientX, ghostY: e.clientY,
+      anchorX: e.clientX - rowRect.left, anchorY: e.clientY - rowRect.top,
+      ghostW: rowRect.width, ghostH: rowRect.height,
     });
 
     const onMove = (me: PointerEvent) => {
       setDragState(prev => {
         if (!prev) return null;
-        // Compute insertIdx from pointer position relative to bullets area
         let newInsertIdx = prev.draggingIdx;
         if (bulletsAreaRef.current) {
           const items = Array.from(bulletsAreaRef.current.querySelectorAll<HTMLElement>("[data-bullet-row]"));
           for (let i = 0; i < items.length; i++) {
             const r = items[i].getBoundingClientRect();
-            const midY = r.top + r.height / 2;
-            if (me.clientY < midY) { newInsertIdx = i; break; }
+            if (me.clientY < r.top + r.height / 2) { newInsertIdx = i; break; }
             if (i === items.length - 1) newInsertIdx = i;
           }
         }
         return { ...prev, ghostX: me.clientX, ghostY: me.clientY, insertIdx: newInsertIdx };
       });
     };
-
     const onUp = () => {
       setDragState(prev => {
         if (prev && prev.insertIdx !== prev.draggingIdx) {
@@ -312,7 +356,6 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
     };
-
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
   };
@@ -320,8 +363,9 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
   const ghostBullet = dragState ? mod.bullets[dragState.draggingIdx] : null;
 
   return (
-    <div ref={containerRef} style={cardStyle}>
-      {/* Floating ghost */}
+    <div ref={containerRef} style={cardStyle}
+      onMouseEnter={() => setHeaderHover(true)} onMouseLeave={() => setHeaderHover(false)}>
+      {/* Floating drag ghost */}
       {dragState && ghostBullet && (
         <div style={{
           position: "fixed",
@@ -331,10 +375,8 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
           pointerEvents: "none", zIndex: 1000,
           background: C.card, border: `2px solid ${C.dragBorder}`,
           borderRadius: 8, padding: "3px 12px",
-          boxShadow: "0 6px 20px rgba(0,0,0,0.22)",
-          opacity: 0.92,
-          display: "flex", alignItems: "flex-start", gap: 8,
-          fontFamily: FONT,
+          boxShadow: "0 6px 20px rgba(0,0,0,0.22)", opacity: 0.92,
+          display: "flex", alignItems: "flex-start", gap: 8, fontFamily: FONT,
         }}>
           <span style={{ color: C.preproc, fontSize: 14, marginTop: 2 }}>•</span>
           <span style={{ flex: 1, fontSize: 14, color: C.text, lineHeight: 1.6 }}>
@@ -344,7 +386,7 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
         </div>
       )}
 
-      {/* Header */}
+      {/* Header row */}
       <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 4, padding: "8px 12px 4px", fontSize: 14 }}>
         <InlineEdit value={mod.organization} onSave={v => onUpdate({ organization: v })}
           style={{ fontWeight: 700, color: C.string }} placeholder="机构名称" />
@@ -357,6 +399,10 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
         <div style={{ flex: 1 }} />
         <InlineEdit value={mod.date_range} onSave={v => onUpdate({ date_range: v })}
           style={{ color: C.muted, fontSize: 12, textAlign: "right" }} placeholder="时间范围" />
+        {/* ⋯ delete menu — always rendered, opacity transition */}
+        <div style={{ opacity: headerHover ? 1 : 0, transition: "opacity 0.18s ease", pointerEvents: headerHover ? "all" : "none", marginLeft: 4 }}>
+          <DotMenuBtn onDelete={onDelete} />
+        </div>
       </div>
 
       {/* Tags */}
@@ -366,8 +412,8 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
         </div>
       )}
 
-      {/* Bullets area */}
-      <div ref={bulletsAreaRef} style={{ padding: "0 12px 4px" }}>
+      {/* Bullets */}
+      <div ref={bulletsAreaRef} style={{ padding: "0 12px 2px" }}>
         {mod.bullets.map((b, i) => (
           <div key={b.bullet_id} data-bullet-row="1">
             <BulletItem
@@ -379,36 +425,133 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
             />
           </div>
         ))}
-        <HoverReveal>
-          <SingleButton label="+" onClick={onAddBullet} style={{ width: "100%", height: 26, fontSize: 16 }} />
-        </HoverReveal>
+        {/* Always-visible add bullet row */}
+        <AddBulletRow onClick={onAddBullet} />
       </div>
-
-      <HoverReveal style={{ padding: "0 12px 4px" }}>
-        <PairButtons onAdd={() => {}} onRemove={onDelete} />
-      </HoverReveal>
     </div>
   );
 }
 
 // ============================================================
-// SectionPicker
+// AddBulletRow — always visible, muted, no HoverReveal
+// ============================================================
+function AddBulletRow({ onClick }: { onClick: () => void }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div onClick={onClick}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}
+      style={{
+        display: "flex", alignItems: "center", gap: 6,
+        padding: "4px 0 6px",
+        cursor: "pointer",
+        color: hov ? C.text : C.muted,
+        fontSize: 13, fontFamily: FONT,
+        transition: "color 0.15s",
+        userSelect: "none",
+      }}>
+      <span style={{ fontSize: 16, lineHeight: 1 }}>＋</span>
+      <span>添加经历条目</span>
+    </div>
+  );
+}
+
+// ============================================================
+// SectionPicker dropdown
 // ============================================================
 function SectionPicker({ existingSections, onPick, onClose }: {
   existingSections: Set<string>; onPick: (s: string) => void; onClose: () => void;
 }) {
   const available = SECTION_ORDER.filter(s => !existingSections.has(s));
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose();
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
   return (
-    <div style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 4, boxShadow: "0 2px 8px rgba(0,0,0,0.15)", fontFamily: FONT }}>
+    <div ref={ref} style={{
+      background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, padding: 4,
+      boxShadow: "0 4px 12px rgba(0,0,0,0.15)", fontFamily: FONT, minWidth: 130,
+    }}>
       {available.length === 0
-        ? <div style={{ padding: 8, fontSize: 13, color: C.muted }}>所有分类均已使用。<button onClick={onClose} style={{ marginLeft: 8, cursor: "pointer" }}>关闭</button></div>
+        ? <div style={{ padding: "6px 12px", fontSize: 13, color: C.muted }}>所有分类均已使用</div>
         : available.map(s => (
           <div key={s} onClick={() => { onPick(s); onClose(); }}
-            style={{ padding: "4px 12px", cursor: "pointer", fontSize: 13, borderRadius: 4 }}
+            style={menuItemStyle}
             onMouseEnter={e => (e.currentTarget.style.background = C.hover)}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >{SECTION_LABELS[s]}</div>
         ))}
+    </div>
+  );
+}
+
+// ============================================================
+// SectionGroup — header + cards
+// ============================================================
+function SectionGroup({ section, label, items, onAddModule, onDeleteSection, onUpdateModule,
+  onDeleteModule, onAddBullet, onDeleteBullet, onSaveBullet, onReorderBullets }: {
+  section: string; label: string; items: ResumeModule[];
+  onAddModule: () => void; onDeleteSection: () => void;
+  onUpdateModule: (mod: ResumeModule, fields: Partial<ResumeModule>) => void;
+  onDeleteModule: (id: string) => void;
+  onAddBullet: (moduleId: string) => void;
+  onDeleteBullet: (moduleId: string, bulletId: string) => void;
+  onSaveBullet: (moduleId: string, bulletId: string, v: string) => void;
+  onReorderBullets: (moduleId: string, bullets: ModuleBullet[]) => void;
+}) {
+  return (
+    <div style={sectionContainerStyle}>
+      {/* Section header */}
+      <HoverReveal style={{ justifyContent: "space-between", marginBottom: 8, borderBottom: `1px solid ${C.border}`, paddingBottom: 6 }}>
+        {/* Left: section label (always visible — we put it outside HoverReveal children) */}
+        {/* We wrap both label and buttons together but show buttons only on hover */}
+        <SectionHeader label={label} onAdd={onAddModule} onDelete={onDeleteSection} />
+      </HoverReveal>
+
+      {items.map(mod => (
+        <ModuleCard
+          key={mod.module_id}
+          mod={mod}
+          onUpdate={fields => onUpdateModule(mod, fields)}
+          onDelete={() => onDeleteModule(mod.module_id)}
+          onAddBullet={() => onAddBullet(mod.module_id)}
+          onDeleteBullet={bid => onDeleteBullet(mod.module_id, bid)}
+          onSaveBullet={(bid, v) => onSaveBullet(mod.module_id, bid, v)}
+          onReorderBullets={bullets => onReorderBullets(mod.module_id, bullets)}
+        />
+      ))}
+    </div>
+  );
+}
+
+// ============================================================
+// SectionHeader — always-visible label + hover buttons
+// ============================================================
+function SectionHeader({ label, onAdd, onDelete }: {
+  label: string; onAdd: () => void; onDelete: () => void;
+}) {
+  const [hov, setHov] = useState(false);
+  return (
+    <div style={{ display: "flex", alignItems: "center", width: "100%" }}
+      onMouseEnter={() => setHov(true)} onMouseLeave={() => setHov(false)}>
+      <span style={{ fontSize: 13, fontWeight: 700, color: C.keyword, letterSpacing: "0.08em", fontFamily: FONT, flex: 1 }}>
+        {label}
+      </span>
+      <div style={{ display: "flex", gap: 6, opacity: hov ? 1 : 0, transition: "opacity 0.2s ease", pointerEvents: hov ? "all" : "none" }}>
+        <SmallIconBtn onClick={onAdd} title="添加子模块" style={{ fontSize: 12, color: C.comment }}>
+          ＋ 添加子模块
+        </SmallIconBtn>
+        <InlineConfirm danger onConfirm={onDelete} label={
+          <SmallIconBtn title="删除此分类" style={{ color: C.danger, fontSize: 12 }}>
+            × 删除分类
+          </SmallIconBtn>
+        } />
+      </div>
     </div>
   );
 }
@@ -422,7 +565,7 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
   const [filter, setFilter] = useState("all");
   const [showSectionPicker, setShowSectionPicker] = useState(false);
 
-  // History for undo/redo (local state snapshots)
+  // Undo/redo history
   const historyStack = useRef<ResumeModule[][]>([]);
   const historyIdx = useRef(-1);
   const skipHistory = useRef(false);
@@ -452,11 +595,10 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
     skipHistory.current = false;
   }, []);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const inInput = document.activeElement?.tagName === "INPUT" || document.activeElement?.tagName === "TEXTAREA";
-      if (inInput) return; // let native undo/redo work in text fields
+      if (inInput) return;
       if ((e.ctrlKey || e.metaKey) && e.key === "z") {
         e.preventDefault();
         if (e.shiftKey) handleRedo(); else handleUndo();
@@ -490,7 +632,6 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
   };
 
   const handleDeleteModule = async (id: string) => {
-    if (!confirm("确认删除此子模块及其所有经历条目？")) return;
     await deleteModuleApi(id);
     setModulesWithHistory(modules.filter(m => m.module_id !== id));
   };
@@ -502,7 +643,6 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
 
   const handleDeleteSection = async (section: string) => {
     const items = modules.filter(m => m.section === section);
-    if (!confirm(`确认删除"${SECTION_LABELS[section]}"分类下全部 ${items.length} 个子模块？`)) return;
     for (const m of items) await deleteModuleApi(m.module_id);
     setModulesWithHistory(modules.filter(m => m.section !== section));
   };
@@ -548,11 +688,8 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
           {modules.length} 个子模块，{totalBullets} 条经历
         </span>
         <div style={{ flex: 1 }} />
-
-        {/* Undo / Redo */}
         <button style={iconBtnStyle} onClick={handleUndo} title="撤销 (Ctrl+Z)">↺</button>
         <button style={iconBtnStyle} onClick={handleRedo} title="重做 (Ctrl+Shift+Z)">↻</button>
-
         <select value={filter} onChange={e => setFilter(e.target.value)} style={selectStyle}>
           <option value="all">全部分类</option>
           {SECTION_ORDER.map(s => <option key={s} value={s}>{SECTION_LABELS[s]}</option>)}
@@ -571,44 +708,34 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
           </div>
         ) : (
           grouped.map(g => (
-            <div key={g.section} style={sectionContainerStyle}>
-              <div style={sectionHeaderStyle}>{g.label}</div>
-              {g.items.map((mod, modIdx) => (
-                <div key={mod.module_id}>
-                  <ModuleCard
-                    mod={mod}
-                    onUpdate={fields => handleUpdateModule(mod, fields)}
-                    onDelete={() => handleDeleteModule(mod.module_id)}
-                    onAddBullet={() => handleAddBullet(mod.module_id)}
-                    onDeleteBullet={bid => handleDeleteBullet(mod.module_id, bid)}
-                    onSaveBullet={(bid, v) => handleSaveBullet(mod.module_id, bid, v)}
-                    onReorderBullets={bullets => handleReorderBullets(mod.module_id, bullets)}
-                  />
-                  {modIdx === g.items.length - 1 && (
-                    <HoverReveal>
-                      <PairButtons onAdd={() => handleAddModuleInSection(g.section)} onRemove={() => handleDeleteModule(mod.module_id)} />
-                    </HoverReveal>
-                  )}
-                </div>
-              ))}
-              <HoverReveal>
-                <div style={{ position: "relative" }}>
-                  <PairButtons onAdd={() => setShowSectionPicker(true)} onRemove={() => handleDeleteSection(g.section)} />
-                  {showSectionPicker && (
-                    <div style={{ position: "absolute", bottom: 32, left: 0, zIndex: 50 }}>
-                      <SectionPicker existingSections={existingSections} onPick={handleAddSection} onClose={() => setShowSectionPicker(false)} />
-                    </div>
-                  )}
-                </div>
-              </HoverReveal>
-            </div>
+            <SectionGroup
+              key={g.section}
+              section={g.section} label={g.label} items={g.items}
+              onAddModule={() => handleAddModuleInSection(g.section)}
+              onDeleteSection={() => handleDeleteSection(g.section)}
+              onUpdateModule={handleUpdateModule}
+              onDeleteModule={handleDeleteModule}
+              onAddBullet={handleAddBullet}
+              onDeleteBullet={handleDeleteBullet}
+              onSaveBullet={handleSaveBullet}
+              onReorderBullets={handleReorderBullets}
+            />
           ))
         )}
-        {!loading && modules.length === 0 && (
-          <div style={{ marginTop: 20, position: "relative" }}>
-            <SingleButton label="+ 添加分类" onClick={() => setShowSectionPicker(true)} style={{ width: "100%" }} />
+
+        {/* Page-bottom: add section */}
+        {!loading && (
+          <div style={{ marginTop: 16, display: "flex", justifyContent: "center", position: "relative" }}>
+            <button onClick={() => setShowSectionPicker(v => !v)} style={{
+              border: `1px dashed ${C.border}`, borderRadius: 6, background: "transparent",
+              padding: "6px 20px", fontSize: 13, color: C.muted, cursor: "pointer",
+              fontFamily: FONT, transition: "color 0.15s, border-color 0.15s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = C.text; e.currentTarget.style.borderColor = C.actionBorder; }}
+              onMouseLeave={e => { e.currentTarget.style.color = C.muted; e.currentTarget.style.borderColor = C.border; }}
+            >＋ 添加分类</button>
             {showSectionPicker && (
-              <div style={{ position: "absolute", top: 36, left: 0, zIndex: 50 }}>
+              <div style={{ position: "absolute", bottom: "calc(100% + 4px)", left: "50%", transform: "translateX(-50%)", zIndex: 50 }}>
                 <SectionPicker existingSections={existingSections} onPick={handleAddSection} onClose={() => setShowSectionPicker(false)} />
               </div>
             )}
@@ -620,45 +747,34 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
 }
 
 // ============================================================
-// Styles
+// Shared styles
 // ============================================================
 const toolbarStyle: CSSProperties = {
   display: "flex", alignItems: "center", gap: 8, padding: "8px 16px",
   background: C.toolbar, borderBottom: `1px solid ${C.border}`, fontFamily: FONT, flexShrink: 0,
 };
-
 const selectStyle: CSSProperties = {
   padding: "4px 8px", borderRadius: 4, border: `1px solid ${C.border}`,
   background: C.card, fontFamily: FONT, fontSize: 12, color: C.text,
 };
-
 const toolBtnStyle: CSSProperties = {
   padding: "4px 12px", border: `1px solid ${C.border}`, borderRadius: 4,
   background: C.toolbar, cursor: "pointer", fontFamily: FONT, fontSize: 12,
   color: C.keyword, fontWeight: 600,
 };
-
 const iconBtnStyle: CSSProperties = {
   width: 32, height: 32, border: `1px solid ${C.border}`, borderRadius: 4,
   background: C.toolbar, cursor: "pointer", fontFamily: FONT, fontSize: 18,
-  color: C.text, display: "flex", alignItems: "center", justifyContent: "center",
+  color: C.text, display: "inline-flex", alignItems: "center", justifyContent: "center",
 };
-
 const sectionContainerStyle: CSSProperties = {
   border: `1px solid ${C.border}`, borderRadius: 8,
-  padding: "8px 12px 4px", marginBottom: 16, background: "#FAFAF8",
+  padding: "8px 12px 8px", marginBottom: 16, background: "#FAFAF8",
 };
-
-const sectionHeaderStyle: CSSProperties = {
-  fontSize: 13, fontWeight: 700, color: C.keyword, letterSpacing: "0.08em",
-  padding: "4px 0 6px", borderBottom: `1px solid ${C.border}`, marginBottom: 8, fontFamily: FONT,
-};
-
 const cardStyle: CSSProperties = {
-  background: C.card, border: `1px solid ${C.border}`, borderRadius: 8,
-  marginBottom: 6, fontFamily: FONT,
+  background: C.card, border: `1px solid ${C.border}`, borderRadius: 8, marginBottom: 6,
+  fontFamily: FONT,
 };
-
 const tagStyle: CSSProperties = {
   fontSize: 11, padding: "1px 6px", borderRadius: 4, background: "#F0F0F0",
   color: C.preproc, border: `1px solid ${C.border}`, fontFamily: FONT,
