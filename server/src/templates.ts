@@ -9,7 +9,7 @@ export const LATEX_TEMPLATE = `\\documentclass[10pt,a4paper]{article}
 \\usepackage{setspace}
 \\usepackage{verbatim}
 \\usepackage{xeCJK}
-\\setCJKmainfont{Noto Sans CJK SC} % DELETE this line when compiling locally (server-only font)
+\\setCJKmainfont{Noto Sans CJK SC}  % DELETE this line when compiling locally (server-only font)
 \\setCJKsansfont{Noto Sans CJK SC}  % DELETE this line when compiling locally (server-only font)
 \\setCJKmonofont{Noto Sans CJK SC}  % DELETE this line when compiling locally (server-only font)
 
@@ -102,9 +102,9 @@ export const LATEX_TEMPLATE_ZH = `\\documentclass[10pt,a4paper]{article}
 \\usepackage{setspace}
 \\usepackage{verbatim}
 \\usepackage{xeCJK}
-\\setCJKmainfont{Noto Sans CJK SC} % DELETE this line when compiling locally (server-only font)
-\\setCJKsansfont{Noto Sans CJK SC}  % DELETE this line when compiling locally (server-only font)
-\\setCJKmonofont{Noto Sans CJK SC}  % DELETE this line when compiling locally (server-only font)
+\\setCJKmainfont{FandolSong}
+\\setCJKsansfont{FandolHei}
+\\setCJKmonofont{FandolFang}
 
 \\pagenumbering{gobble}
 \\setlength{\\parindent}{0pt}
