@@ -8,6 +8,26 @@ servers:
     description: Production server (Railway)
 
 paths:
+  /api/auth/editor-link:
+    get:
+      operationId: getEditorLink
+      summary: Get pre-built editor and module library URLs with token embedded
+      description: Returns ready-to-use URLs for the LaTeX editor and module library, with the user's access token already embedded. Call this whenever you need to share an editor or module library link with the user.
+      responses:
+        "200":
+          description: Editor URLs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  editor_url:
+                    type: string
+                    description: URL to open the LaTeX editor
+                  modules_url:
+                    type: string
+                    description: URL to open the module library manager
+
   /api/modules:
     post:
       operationId: storeModules

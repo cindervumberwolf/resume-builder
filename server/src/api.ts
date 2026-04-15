@@ -106,6 +106,16 @@ app.get("/api/template/latex", (_req, res) => {
   });
 });
 
+// --- Auth: editor link (requires auth, returns pre-built URL with token embedded) ---
+app.get("/api/auth/editor-link", requireAuth, (req: AuthRequest, res) => {
+  const token = (req.headers.authorization ?? "").replace("Bearer ", "").trim();
+  const base = process.env.PUBLIC_BASE_URL ?? `${req.protocol}://${req.get("host")}`;
+  res.json({
+    editor_url: `${base}/editor?token=${token}`,
+    modules_url: `${base}/editor?token=${token}&view=modules`,
+  });
+});
+
 // --- All API routes below require authentication ---
 
 // --- Modules ---
