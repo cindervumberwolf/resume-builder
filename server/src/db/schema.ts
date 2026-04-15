@@ -54,6 +54,7 @@ export function initializeDatabase(db: Database.Database): void {
       organization  TEXT NOT NULL,
       title         TEXT NOT NULL,
       date_range    TEXT NOT NULL,
+      location      TEXT,
       context_tags  TEXT NOT NULL,
       base_priority REAL NOT NULL DEFAULT 0.5,
       source_type   TEXT NOT NULL DEFAULT 'master_resume',
@@ -127,6 +128,9 @@ function migrateLegacyTables(db: Database.Database): void {
       ALTER TABLE resume_modules RENAME TO resume_modules_legacy;
       DROP TABLE IF EXISTS resume_modules_legacy;
     `);
+  }
+  if (!columnExists(db, "resume_modules", "location")) {
+    db.exec(`ALTER TABLE resume_modules ADD COLUMN location TEXT`);
   }
   if (!columnExists(db, "bullets", "user_id")) {
     db.exec(`

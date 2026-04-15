@@ -34,6 +34,7 @@ export const ExperienceModuleSchema = z.object({
   organization: z.string(),
   title: z.string(),
   date_range: z.string(),
+  location: z.string().optional(),
   context_tags: z.array(z.string()),
   base_priority: z.number().min(0).max(1),
   source_type: z.enum(["master_resume", "manual_input", "parsed"]).default("master_resume"),

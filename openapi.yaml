@@ -42,6 +42,9 @@ paths:
                         type: string
                       date_range:
                         type: string
+                      location:
+                        type: string
+                        description: "City and country of the experience (e.g. 'Beijing, China' or '北京，中国'). Optional."
                       context_tags:
                         type: array
                         items:

@@ -42,6 +42,7 @@ interface ModuleRow {
   organization: string;
   title: string;
   date_range: string;
+  location: string | null;
   context_tags: string;
   base_priority: number;
   source_type: string;
@@ -222,11 +223,12 @@ export function upsertModule(mod: ExperienceModule, userId: string): void {
   db().prepare(`
     INSERT OR REPLACE INTO resume_modules
       (module_id, user_id, type, section, organization, title, date_range,
-       context_tags, base_priority, source_type)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       location, context_tags, base_priority, source_type)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     mod.module_id, userId, mod.type, mod.section, mod.organization,
-    mod.title, mod.date_range, JSON.stringify(mod.context_tags),
+    mod.title, mod.date_range, mod.location ?? null,
+    JSON.stringify(mod.context_tags),
     mod.base_priority, mod.source_type,
   );
 }
@@ -260,6 +262,7 @@ export function listModules(userId: string): (ExperienceModule & { bullets: Bull
       organization: mod.organization,
       title: mod.title,
       date_range: mod.date_range,
+      location: mod.location ?? undefined,
       context_tags: JSON.parse(mod.context_tags),
       base_priority: mod.base_priority,
       source_type: mod.source_type as ExperienceModule["source_type"],
@@ -283,6 +286,7 @@ export function getModuleWithBullets(moduleId: string, userId: string) {
     organization: mod.organization,
     title: mod.title,
     date_range: mod.date_range,
+    location: mod.location ?? undefined,
     context_tags: JSON.parse(mod.context_tags),
     base_priority: mod.base_priority,
     source_type: mod.source_type,
