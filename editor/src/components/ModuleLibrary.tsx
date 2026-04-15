@@ -7,7 +7,7 @@ import {
 } from "../api";
 
 // ============================================================
-// Color palette — Bloodshed Dev-C++ classic
+// Color palette — Bloodshed Dev-C++ classic (customised)
 // ============================================================
 const C = {
   bg: "#FFFFFF",
@@ -15,11 +15,11 @@ const C = {
   card: "#FFFFFF",
   text: "#000000",
   muted: "#808080",
-  keyword: "#000080",
-  string: "#CC0000",
-  comment: "#008000",
-  number: "#800080",
-  preproc: "#0000CC",
+  keyword: "#091D26",   // was #000080
+  string: "#091D26",    // was #CC0000
+  comment: "#094044",   // was #008000
+  number: "#715B65",    // was #800080
+  preproc: "#D84F2A",   // was #0000CC
   border: "#ACA899",
   inputBorder: "#7F9DB9",
   inputFocus: "#316AC5",
@@ -37,16 +37,16 @@ const FONT = '"Times New Roman", "FandolSong", "SimSun", "Songti SC", serif';
 // ============================================================
 const SECTION_ORDER = ["education", "experience", "projects", "leadership", "awards", "skills"] as const;
 const SECTION_LABELS: Record<string, string> = {
-  education: "EDUCATION / 教育背景",
-  experience: "EXPERIENCE / 实习经历",
-  projects: "PROJECTS / 项目经历",
-  leadership: "LEADERSHIP / 校园经历",
-  awards: "AWARDS / 竞赛经历",
-  skills: "SKILLS / 技能",
+  education: "教育背景",
+  experience: "实习经历",
+  projects: "项目经历",
+  leadership: "校园经历",
+  awards: "竞赛经历",
+  skills: "技能",
 };
 
 // ============================================================
-// InlineEdit — click to edit, blur to save
+// InlineEdit — click to edit, blur to save; cursor goes where clicked
 // ============================================================
 function InlineEdit({ value, onSave, style, placeholder, multiline }: {
   value: string;
@@ -57,10 +57,8 @@ function InlineEdit({ value, onSave, style, placeholder, multiline }: {
 }) {
   const [editing, setEditing] = useState(false);
   const [text, setText] = useState(value);
-  const ref = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
   useEffect(() => { setText(value); }, [value]);
-  useEffect(() => { if (editing && ref.current) { ref.current.focus(); ref.current.select(); } }, [editing]);
 
   const commit = () => {
     setEditing(false);
@@ -75,7 +73,7 @@ function InlineEdit({ value, onSave, style, placeholder, multiline }: {
 
   const baseInputStyle: CSSProperties = {
     fontFamily: FONT, fontSize: "inherit", color: "inherit", fontWeight: "inherit", fontStyle: "inherit",
-    background: "#FFFFF0", border: `1px solid ${C.inputBorder}`, borderRadius: 2,
+    background: "#FFFFF0", border: `1px solid ${C.inputBorder}`, borderRadius: 4,
     padding: "1px 4px", outline: "none", width: "100%", boxSizing: "border-box",
     ...style,
   };
@@ -84,7 +82,7 @@ function InlineEdit({ value, onSave, style, placeholder, multiline }: {
     if (multiline) {
       return (
         <textarea
-          ref={ref as React.RefObject<HTMLTextAreaElement>}
+          autoFocus
           value={text} onChange={e => setText(e.target.value)}
           onBlur={commit} onKeyDown={onKey}
           style={{ ...baseInputStyle, resize: "vertical", minHeight: 40, lineHeight: 1.6 }}
@@ -94,7 +92,7 @@ function InlineEdit({ value, onSave, style, placeholder, multiline }: {
     }
     return (
       <input
-        ref={ref as React.RefObject<HTMLInputElement>}
+        autoFocus
         value={text} onChange={e => setText(e.target.value)}
         onBlur={commit} onKeyDown={onKey}
         style={baseInputStyle}
@@ -109,7 +107,7 @@ function InlineEdit({ value, onSave, style, placeholder, multiline }: {
       onMouseEnter={e => (e.currentTarget.style.borderBottomColor = C.inputBorder)}
       onMouseLeave={e => (e.currentTarget.style.borderBottomColor = "transparent")}
     >
-      {value || <span style={{ color: C.muted, fontStyle: "italic" }}>{placeholder ?? "click to edit"}</span>}
+      {value || <span style={{ color: C.muted, fontStyle: "italic" }}>{placeholder ?? "点击编辑"}</span>}
     </span>
   );
 }
@@ -136,17 +134,17 @@ function HoverReveal({ children, style }: { children: ReactNode; style?: CSSProp
 }
 
 // ============================================================
-// PairButtons — the +/- rounded-rect pair used for sections & modules
+// PairButtons — the +/- rounded-rect pair
 // ============================================================
-function PairButtons({ onAdd, onRemove, width }: { onAdd: () => void; onRemove: () => void; width?: string | number }) {
+function PairButtons({ onAdd, onRemove }: { onAdd: () => void; onRemove: () => void }) {
   const btnBase: CSSProperties = {
-    flex: 1, height: 28, border: `1px solid ${C.actionBorder}`, borderRadius: 4,
+    flex: 1, height: 28, border: `1px solid ${C.actionBorder}`, borderRadius: 8,
     background: C.actionBg, cursor: "pointer", fontSize: 18, fontFamily: FONT,
     color: C.text, display: "flex", alignItems: "center", justifyContent: "center",
     transition: "background 0.15s",
   };
   return (
-    <div style={{ display: "flex", gap: 6, width: width ?? "100%" }}>
+    <div style={{ display: "flex", gap: 6, width: "100%" }}>
       <button style={btnBase} onClick={onAdd}
         onMouseEnter={e => (e.currentTarget.style.background = C.actionHover)}
         onMouseLeave={e => (e.currentTarget.style.background = C.actionBg)}
@@ -160,16 +158,15 @@ function PairButtons({ onAdd, onRemove, width }: { onAdd: () => void; onRemove: 
 }
 
 // ============================================================
-// SingleButton — a single +  or − action button
+// SingleButton
 // ============================================================
-function SingleButton({ label, onClick, danger, style }: {
-  label: string; onClick: () => void; danger?: boolean; style?: CSSProperties;
+function SingleButton({ label, onClick, style }: {
+  label: string; onClick: () => void; style?: CSSProperties;
 }) {
   const base: CSSProperties = {
-    height: 28, border: `1px solid ${C.actionBorder}`, borderRadius: 4,
+    height: 28, border: `1px solid ${C.actionBorder}`, borderRadius: 8,
     background: C.actionBg, cursor: "pointer", fontSize: 18, fontFamily: FONT,
-    color: danger ? C.danger : C.text,
-    display: "flex", alignItems: "center", justifyContent: "center",
+    color: C.text, display: "flex", alignItems: "center", justifyContent: "center",
     transition: "background 0.15s", ...style,
   };
   return (
@@ -181,54 +178,51 @@ function SingleButton({ label, onClick, danger, style }: {
 }
 
 // ============================================================
-// DragHandle — ≡ three-line handle for bullet reorder
+// BulletItem — with full-row drag ghost
 // ============================================================
-function DragHandle({ onDragStart }: { onDragStart: (e: React.DragEvent) => void }) {
-  return (
-    <span
-      draggable
-      onDragStart={onDragStart}
-      style={{
-        cursor: "grab", color: C.muted, fontSize: 16, userSelect: "none",
-        padding: "0 4px", lineHeight: 1, flexShrink: 0,
-      }}
-      title="Drag to reorder"
-    >≡</span>
-  );
-}
-
-// ============================================================
-// BulletItem
-// ============================================================
-function BulletItem({ bullet, moduleId, index, onSave, onDelete, onDragStart, onDragOver, onDrop }: {
+function BulletItem({ bullet, index, onSave, onDelete, onDragStart, onDragOver, onDrop }: {
   bullet: ModuleBullet;
-  moduleId: string;
   index: number;
   onSave: (raw_fact: string) => void;
   onDelete: () => void;
-  onDragStart: (e: React.DragEvent, idx: number) => void;
+  onDragStart: (e: React.DragEvent, idx: number, el: HTMLElement) => void;
   onDragOver: (e: React.DragEvent, idx: number) => void;
   onDrop: (e: React.DragEvent, idx: number) => void;
 }) {
   const [deleteVisible, setDeleteVisible] = useState(false);
+  const rowRef = useRef<HTMLDivElement>(null);
 
   return (
     <div
+      ref={rowRef}
       style={{ display: "flex", alignItems: "flex-start", position: "relative", padding: "3px 0" }}
       onDragOver={e => { e.preventDefault(); onDragOver(e, index); }}
       onDrop={e => onDrop(e, index)}
     >
-      <span style={{ color: C.keyword, marginRight: 8, marginTop: 2, flexShrink: 0, fontSize: 14 }}>•</span>
+      <span style={{ color: C.preproc, marginRight: 8, marginTop: 2, flexShrink: 0, fontSize: 14 }}>•</span>
       <div style={{ flex: 1, fontSize: 14, color: C.text, lineHeight: 1.6 }}>
         <InlineEdit
           value={bullet.raw_fact}
           onSave={onSave}
-          placeholder="Click to type bullet text"
+          placeholder="点击输入经历内容"
           multiline
         />
       </div>
-      <DragHandle onDragStart={e => onDragStart(e, index)} />
-      {/* Delete zone: invisible area to the right of the bullet */}
+
+      {/* Drag handle — ≡, triggers full-row ghost */}
+      <span
+        draggable
+        onDragStart={e => {
+          if (rowRef.current) onDragStart(e, index, rowRef.current);
+        }}
+        style={{
+          cursor: "grab", color: C.muted, fontSize: 16, userSelect: "none",
+          padding: "2px 6px", lineHeight: 1, flexShrink: 0, alignSelf: "center",
+        }}
+        title="拖动排序"
+      >≡</span>
+
+      {/* Delete zone */}
       <div
         onMouseEnter={() => setDeleteVisible(true)}
         onMouseLeave={() => setDeleteVisible(false)}
@@ -236,7 +230,7 @@ function BulletItem({ bullet, moduleId, index, onSave, onDelete, onDragStart, on
       >
         <div style={{
           opacity: deleteVisible ? 1 : 0, transition: "opacity 0.2s ease",
-          width: 24, height: 24, borderRadius: 4,
+          width: 26, height: 26, borderRadius: 8,
           border: `1px solid ${C.actionBorder}`, background: C.actionBg,
           display: "flex", alignItems: "center", justifyContent: "center",
           cursor: "pointer", fontSize: 16, color: C.danger,
@@ -248,7 +242,7 @@ function BulletItem({ bullet, moduleId, index, onSave, onDelete, onDragStart, on
 }
 
 // ============================================================
-// ModuleCard — one sub-module with header, tags, bullets
+// ModuleCard — one sub-module
 // ============================================================
 function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSaveBullet, onReorderBullets }: {
   mod: ResumeModule;
@@ -260,50 +254,56 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
   onReorderBullets: (bullets: ModuleBullet[]) => void;
 }) {
   const dragIdx = useRef<number | null>(null);
-  const [dropTarget, setDropTarget] = useState<number | null>(null);
 
-  const handleDragStart = (_e: React.DragEvent, idx: number) => { dragIdx.current = idx; };
-  const handleDragOver = (_e: React.DragEvent, idx: number) => { setDropTarget(idx); };
-  const handleDrop = (_e: React.DragEvent, idx: number) => {
+  const handleDragStart = (e: React.DragEvent, idx: number, el: HTMLElement) => {
+    dragIdx.current = idx;
+    // Use the whole bullet row as the drag ghost
+    e.dataTransfer.setDragImage(el, el.offsetWidth / 2, el.offsetHeight / 2);
+    e.dataTransfer.effectAllowed = "move";
+  };
+  const handleDragOver = (e: React.DragEvent, _idx: number) => { e.preventDefault(); };
+  const handleDrop = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
     const from = dragIdx.current;
-    if (from === null || from === idx) { setDropTarget(null); return; }
+    if (from === null || from === idx) return;
     const reordered = [...mod.bullets];
     const [moved] = reordered.splice(from, 1);
     reordered.splice(idx, 0, moved);
     onReorderBullets(reordered);
     dragIdx.current = null;
-    setDropTarget(null);
   };
 
   return (
     <div style={cardStyle}>
-      {/* Module header: org | title | location | date_range */}
+      {/* Sub-module header */}
       <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 4, padding: "8px 12px 4px", fontSize: 14 }}>
         <InlineEdit value={mod.organization} onSave={v => onUpdate({ organization: v })}
-          style={{ fontWeight: 700, color: C.string }} placeholder="Organization" />
+          style={{ fontWeight: 700, color: C.string }} placeholder="机构名称" />
         <span style={{ color: C.muted }}>|</span>
         <InlineEdit value={mod.title} onSave={v => onUpdate({ title: v })}
-          style={{ color: C.comment }} placeholder="Title / Role" />
+          style={{ color: C.comment }} placeholder="职位 / 角色" />
         <span style={{ color: C.muted }}>|</span>
         <InlineEdit value={mod.location ?? ""} onSave={v => onUpdate({ location: v || undefined })}
-          style={{ color: C.number }} placeholder="City, Country" />
+          style={{ color: C.number }} placeholder="城市，国家" />
         <div style={{ flex: 1 }} />
         <InlineEdit value={mod.date_range} onSave={v => onUpdate({ date_range: v })}
-          style={{ color: C.muted, fontSize: 12, textAlign: "right" }} placeholder="Date range" />
+          style={{ color: C.muted, fontSize: 12, textAlign: "right" }} placeholder="时间范围" />
       </div>
 
       {/* Tags */}
-      <div style={{ padding: "0 12px 6px", display: "flex", flexWrap: "wrap", gap: 4 }}>
-        {(mod.context_tags ?? []).map((t, i) => (
-          <span key={i} style={tagStyle}>{t}</span>
-        ))}
-      </div>
+      {(mod.context_tags ?? []).length > 0 && (
+        <div style={{ padding: "0 12px 6px", display: "flex", flexWrap: "wrap", gap: 4 }}>
+          {mod.context_tags.map((t, i) => (
+            <span key={i} style={tagStyle}>{t}</span>
+          ))}
+        </div>
+      )}
 
       {/* Bullets */}
       <div style={{ padding: "0 12px 4px" }}>
         {mod.bullets.map((b, i) => (
           <BulletItem
-            key={b.bullet_id} bullet={b} moduleId={mod.module_id} index={i}
+            key={b.bullet_id} bullet={b} index={i}
             onSave={raw => onSaveBullet(b.bullet_id, raw)}
             onDelete={() => onDeleteBullet(b.bullet_id)}
             onDragStart={handleDragStart}
@@ -318,7 +318,7 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
         </HoverReveal>
       </div>
 
-      {/* Hover: +/- module at bottom */}
+      {/* Hover: +/- sub-module */}
       <HoverReveal style={{ padding: "0 12px 4px" }}>
         <PairButtons onAdd={() => {}} onRemove={onDelete} />
       </HoverReveal>
@@ -327,7 +327,7 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
 }
 
 // ============================================================
-// SectionPicker — dropdown to pick a new section type
+// SectionPicker
 // ============================================================
 function SectionPicker({ existingSections, onPick, onClose }: {
   existingSections: Set<string>;
@@ -337,18 +337,18 @@ function SectionPicker({ existingSections, onPick, onClose }: {
   const available = SECTION_ORDER.filter(s => !existingSections.has(s));
   if (available.length === 0) return (
     <div style={{ padding: 8, fontSize: 13, color: C.muted, fontFamily: FONT }}>
-      All section types are in use.
-      <button onClick={onClose} style={{ marginLeft: 8, cursor: "pointer" }}>Close</button>
+      所有分类均已使用。
+      <button onClick={onClose} style={{ marginLeft: 8, cursor: "pointer" }}>关闭</button>
     </div>
   );
   return (
     <div style={{
-      background: C.card, border: `1px solid ${C.border}`, borderRadius: 4,
+      background: C.card, border: `1px solid ${C.border}`, borderRadius: 8,
       padding: 4, boxShadow: "0 2px 8px rgba(0,0,0,0.15)", fontFamily: FONT,
     }}>
       {available.map(s => (
         <div key={s} onClick={() => { onPick(s); onClose(); }}
-          style={{ padding: "4px 12px", cursor: "pointer", fontSize: 13, borderRadius: 2 }}
+          style={{ padding: "4px 12px", cursor: "pointer", fontSize: 13, borderRadius: 4 }}
           onMouseEnter={e => (e.currentTarget.style.background = C.hover)}
           onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
         >
@@ -390,7 +390,7 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
   };
 
   const handleDeleteModule = async (id: string) => {
-    if (!confirm("Delete this module and all its bullets?")) return;
+    if (!confirm("确认删除此子模块及其所有经历条目？")) return;
     await deleteModuleApi(id);
     setModules(prev => prev.filter(m => m.module_id !== id));
   };
@@ -402,7 +402,7 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
 
   const handleDeleteSection = async (section: string) => {
     const items = modules.filter(m => m.section === section);
-    if (!confirm(`Delete all ${items.length} module(s) in "${SECTION_LABELS[section]}"?`)) return;
+    if (!confirm(`确认删除"${SECTION_LABELS[section]}"分类下全部 ${items.length} 个子模块？`)) return;
     for (const m of items) await deleteModuleApi(m.module_id);
     setModules(prev => prev.filter(m => m.section !== section));
   };
@@ -450,34 +450,36 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: C.bg, fontFamily: FONT, color: C.text }}>
       {/* Toolbar */}
       <div style={toolbarStyle}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: C.keyword, marginRight: 12 }}>Module Library</span>
+        {/* Title: 15px × 2 = 30px */}
+        <span style={{ fontWeight: 700, fontSize: 30, color: C.keyword, marginRight: 12 }}>我的经历库</span>
         <span style={{ fontSize: 12, color: C.muted }}>
-          {modules.length} modules, {totalBullets} bullets
+          {modules.length} 个子模块，{totalBullets} 条经历
         </span>
         <div style={{ flex: 1 }} />
         <select value={filter} onChange={e => setFilter(e.target.value)} style={selectStyle}>
-          <option value="all">All Sections</option>
+          <option value="all">全部分类</option>
           {SECTION_ORDER.map(s => <option key={s} value={s}>{SECTION_LABELS[s]}</option>)}
         </select>
-        <button style={toolBtnStyle} onClick={onBack}>Back to Editor</button>
+        <button style={toolBtnStyle} onClick={onBack}>返回编辑器</button>
       </div>
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 20px 60px" }}>
         {loading ? (
-          <p style={{ color: C.muted, padding: 24 }}>Loading modules...</p>
+          <p style={{ color: C.muted, padding: 24 }}>加载中...</p>
         ) : modules.length === 0 ? (
           <div style={{ padding: 40, textAlign: "center", color: C.muted }}>
-            <p style={{ fontSize: 16, marginBottom: 8 }}>No modules stored yet.</p>
-            <p style={{ fontSize: 13 }}>Use the GPT to upload your resume and store modules.</p>
+            <p style={{ fontSize: 16, marginBottom: 8 }}>暂无已存储的经历模块。</p>
+            <p style={{ fontSize: 13 }}>在 GPT 中上传简历并存储模块后，即可在此管理。</p>
           </div>
         ) : (
           grouped.map(g => (
-            <div key={g.section} style={{ marginBottom: 20 }}>
+            /* Section outer rounded-rect container */
+            <div key={g.section} style={sectionContainerStyle}>
               {/* Section header */}
               <div style={sectionHeaderStyle}>{g.label}</div>
 
-              {/* Modules */}
+              {/* Sub-modules */}
               {g.items.map((mod, modIdx) => (
                 <div key={mod.module_id}>
                   <ModuleCard
@@ -489,7 +491,6 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
                     onSaveBullet={(bid, raw) => handleSaveBullet(mod.module_id, bid, raw)}
                     onReorderBullets={bullets => handleReorderBullets(mod.module_id, bullets)}
                   />
-                  {/* +/- module: only on last module to avoid clutter */}
                   {modIdx === g.items.length - 1 && (
                     <HoverReveal>
                       <PairButtons
@@ -523,10 +524,9 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
           ))
         )}
 
-        {/* If no sections at all, show add section */}
         {!loading && modules.length === 0 && (
           <div style={{ marginTop: 20, position: "relative" }}>
-            <SingleButton label="+ Add Section" onClick={() => setShowSectionPicker(true)} style={{ width: "100%" }} />
+            <SingleButton label="+ 添加分类" onClick={() => setShowSectionPicker(true)} style={{ width: "100%" }} />
             {showSectionPicker && (
               <div style={{ position: "absolute", top: 36, left: 0, zIndex: 50 }}>
                 <SectionPicker
@@ -554,29 +554,35 @@ const toolbarStyle: CSSProperties = {
 };
 
 const selectStyle: CSSProperties = {
-  padding: "4px 8px", borderRadius: 2, border: `1px solid ${C.border}`,
+  padding: "4px 8px", borderRadius: 4, border: `1px solid ${C.border}`,
   background: C.card, fontFamily: FONT, fontSize: 12, color: C.text,
 };
 
 const toolBtnStyle: CSSProperties = {
-  padding: "4px 12px", border: `1px solid ${C.border}`, borderRadius: 2,
+  padding: "4px 12px", border: `1px solid ${C.border}`, borderRadius: 4,
   background: C.toolbar, cursor: "pointer", fontFamily: FONT, fontSize: 12,
   color: C.keyword, fontWeight: 600,
 };
 
+const sectionContainerStyle: CSSProperties = {
+  border: `1px solid ${C.border}`, borderRadius: 8,
+  padding: "8px 12px 4px", marginBottom: 16,
+  background: "#FAFAF8",
+};
+
 const sectionHeaderStyle: CSSProperties = {
   fontSize: 13, fontWeight: 700, color: C.keyword, letterSpacing: "0.08em",
-  padding: "8px 0 4px", borderBottom: `1px solid ${C.border}`, marginBottom: 6,
+  padding: "4px 0 6px", borderBottom: `1px solid ${C.border}`, marginBottom: 8,
   fontFamily: FONT,
 };
 
 const cardStyle: CSSProperties = {
-  background: C.card, border: `1px solid ${C.border}`, borderRadius: 2,
-  marginBottom: 4, fontFamily: FONT,
+  background: C.card, border: `1px solid ${C.border}`, borderRadius: 8,
+  marginBottom: 6, fontFamily: FONT,
 };
 
 const tagStyle: CSSProperties = {
-  fontSize: 11, padding: "1px 6px", borderRadius: 2,
+  fontSize: 11, padding: "1px 6px", borderRadius: 4,
   background: "#F0F0F0", color: C.preproc, border: `1px solid ${C.border}`,
   fontFamily: FONT,
 };
