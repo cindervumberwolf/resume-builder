@@ -21,12 +21,10 @@ COPY data/taxonomy.json ./data/taxonomy.json
 
 RUN npx tsc
 
-RUN node dist/server/src/db/init.js && node dist/server/src/db/seed.js
-
 ENV NODE_ENV=production
 ENV PORT=8787
 ENV PDFLATEX_CMD=xelatex
 
 EXPOSE 8787
 
-CMD ["node", "dist/server/src/api.js"]
+CMD ["sh", "-c", "node dist/server/src/db/init.js && node dist/server/src/db/seed.js && node dist/server/src/api.js"]
