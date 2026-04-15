@@ -1,11 +1,14 @@
 import Database from "better-sqlite3";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DB_PATH = path.resolve(__dirname, "../../../data/resume_builder.db");
+const DB_DIR = path.resolve(__dirname, "../../../data");
+const DB_PATH = path.join(DB_DIR, "resume_builder.db");
 
 export function getDb(): Database.Database {
+  fs.mkdirSync(DB_DIR, { recursive: true });
   const db = new Database(DB_PATH);
   db.pragma("journal_mode = WAL");
   db.pragma("foreign_keys = ON");
