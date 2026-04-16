@@ -1,6 +1,6 @@
 # Good Old Resume — 产品完整文档
 
-> 最后更新：2026 年 4 月
+> 最后更新：2026 年 4 月（母/子资产架构、JD 库 Tab、access token 7 天）
 
 ---
 
@@ -24,8 +24,9 @@
 
 | 维度 | 说明 |
 |------|------|
-| **模块化存储** | 将每段经历拆解为「子模块 + bullet 条目」分别存库，不同 JD 共享同一份经历库 |
-| **JD 智能匹配** | 基于标签重叠与评分模型，从库中挑选最相关的模块与 bullet |
+| **模块化存储（母资产库）** | 将每段经历拆解为「子模块 + bullet 条目」分别存库，不同 JD 共享同一份经历库 |
+| **JD 智能匹配** | 基于标签重叠与评分模型，联合检索母资产与子资产，子资产享有额外加权（+3 分） |
+| **母/子资产双层架构** | 针对特定 JD 优化后的内容自动沉淀为「子资产」，可关联并复用于相近 JD |
 | **服务端编译** | XeLaTeX + xeCJK 运行在 Railway 容器内，用户无需在本地安装任何工具 |
 | **中英文双模板** | 英文模板与中文模板（Fandol/Noto 字体）同时维护，GPT 自动选择 |
 | **多用户隔离** | 自建 OAuth 2.0，每位用户数据严格隔离，支持公开分享使用 |
@@ -123,8 +124,11 @@ resume/
 users              — 用户账户（user_id, email, password_hash）
 auth_tokens        — OAuth 令牌（access / refresh / code，含过期时间）
 jd_schemas         — 结构化 JD（含 hard/soft requirements、evidence_targets）
-resume_modules     — 经历子模块（organization, title, section, location 等）
-bullets            — bullet 条目（raw_fact, evidence/skill/role_fit tags, 评分）
+resume_modules     — 经历子模块（organization, title, section, location 等）【母资产】
+bullets            — bullet 条目（raw_fact, evidence/skill/role_fit tags, sort_order）【母资产】
+child_modules      — 针对特定 JD 优化后的子模块（parent_module_id 回溯来源）【子资产】
+child_bullets      — 子模块的 bullet 条目（parent_bullet_id 可选，sort_order）【子资产】
+child_jd_links     — 子模块 ↔ JD 的多对多关联表
 exemplars          — 优质 bullet 样例库（用于风格参考，全局共享）
 taxonomy_signals   — 技能信号分类词典（用于 matchModules 扩展匹配）
 canvas_drafts      — LaTeX 草稿（draft_id, title, latex_source，用户隔离）
@@ -142,7 +146,7 @@ canvas_drafts      — LaTeX 草稿（draft_id, title, latex_source，用户隔�
 2. ChatGPT 检测到未授权，跳转至 OAuth 授权页：`https://<host>/oauth/authorize`。
 3. 用户在该页面**注册**（填写邮箱 + 密码，密码 ≥ 8 位）或**登录**（已有账户）。
 4. 服务端验证通过后，生成一次性授权码（`code`，有效期 5 分钟），重定向回 ChatGPT。
-5. ChatGPT 用授权码换取 access_token（有效期 **1 小时**）和 refresh_token（有效期 **30 天**）。
+5. ChatGPT 用授权码换取 access_token（有效期 **7 天**）和 refresh_token（有效期 **30 天**）。
 6. 后续所有 Action 调用均在请求头中携带 `Authorization: Bearer <access_token>`。
 
 > **注意**：access_token 过期后，ChatGPT 会尝试用 refresh_token 自动续期。若 refresh_token 也过期，需重新触发 OAuth 流程（通常表现为 GPT 提示重新登录）。
@@ -257,7 +261,7 @@ GPT 展示下载链接 + 完整 LaTeX 源码
 
 ## 四、已实现功能清单
 
-### 4.1 GPT Actions（11 个）
+### 4.1 GPT Actions（14 个）
 
 | Action | 端点 | 说明 |
 |--------|------|------|
@@ -267,7 +271,10 @@ GPT 展示下载链接 + 完整 LaTeX 源码
 | `deleteModule` | `DELETE /api/modules/:id` | 删除模块及其 bullet |
 | `storeJd` | `POST /api/jd` | 存储结构化 JD |
 | `listJds` | `GET /api/jd` | 列出所有已存 JD |
-| `matchModules` | `POST /api/match` | JD 匹配，返回评分排序的模块列表 |
+| `matchModules` | `POST /api/match` | JD 匹配，联合检索母资产+子资产，返回带评分的列表 |
+| `storeChildModules` | `POST /api/children` | 存储针对 JD 优化后的子资产模块 |
+| `listChildModules` | `GET /api/children` | 列出所有子资产（可按 job_id 过滤） |
+| `linkChildJd` | `POST /api/children/:id/link` | 将子资产关联至另一个 JD |
 | `getLatexTemplate` | `GET /api/template/latex` | 获取英文 LaTeX 模板 |
 | `getLatexTemplateCn` | `GET /api/template/latex/zh` | 获取中文 LaTeX 模板 |
 | `compileLatex` | `POST /api/latex/compile` | 编译 LaTeX → PDF URL |
@@ -304,7 +311,15 @@ GPT 展示下载链接 + 完整 LaTeX 源码
 | `POST` | `/api/jd` | 存储 JD |
 | `GET` | `/api/jd` | 列出所有 JD |
 | `GET` | `/api/jd/:id` | 获取单个 JD |
-| `POST` | `/api/match` | 模块匹配 |
+| `DELETE` | `/api/jd/:id` | 删除 JD |
+| `POST` | `/api/match` | 模块匹配（母资产 + 子资产联合检索） |
+| `POST` | `/api/children` | 存储子资产模块 + bullet |
+| `GET` | `/api/children` | 列出子资产（可传 `?job_id=` 过滤） |
+| `GET` | `/api/children/:id` | 获取子资产详情 |
+| `PATCH` | `/api/children/:id` | 更新子资产字段 |
+| `DELETE` | `/api/children/:id` | 删除子资产 |
+| `PATCH` | `/api/children/:mid/bullets/:bid` | 更新子资产 bullet |
+| `POST` | `/api/children/:id/link` | 关联子资产至指定 JD |
 | `POST` | `/api/latex/compile` | LaTeX 编译 |
 | `GET` | `/canvas/drafts` | 列出草稿 |
 | `GET` | `/canvas/draft/:id` | 获取草稿 |
@@ -333,10 +348,11 @@ GPT 展示下载链接 + 完整 LaTeX 源码
 
 ### 4.4 经历库 UI 技术亮点
 
-- **InlineEdit**：点击文字即原地进入输入框，失焦自动调用 `PATCH` API 保存，`Esc` 取消
+- **三 Tab 管理**：母资产库（经历模块）/ 子资产库（JD 优化版本，按 JD 分组）/ JD 库（已存 JD 一览与删除）
+- **InlineEdit**：点击文字即原地进入输入框，失焦自动调用 `PATCH` API 保存，`Esc` 取消；`context_tags` 字段同样支持直接编辑
 - **Pointer Events 拖拽**：完全自实现（非 HTML5 Drag API），原始元素保持完全可见，浮动 ghost 跟随鼠标，其他 bullet 以 CSS `transform + transition` 动画平滑让位
 - **InlineConfirm**：删除操作的 inline 确认（`确认？ ✓ 取消`），替代浏览器原生 `confirm()` 弹窗
-- **本地撤销 / 重做**：React `useRef` 维护快照历史栈，不依赖后端接口，支持键盘快捷键
+- **本地撤销 / 重做**：React `useRef` 维护快照历史栈，不依赖后端接口，支持键盘快捷键（`Ctrl+Z` / `Ctrl+Shift+Z`）
 
 ---
 
@@ -431,9 +447,9 @@ curl -X DELETE \
 
 | 问题 | 根因 | 建议修复方向 |
 |------|------|------------|
-| **Bullet 排序不持久化** | `resume_modules` 表无 `bullet_order` 列，UI 排序仅为本地状态，刷新即丢失 | 在 `bullets` 表增加 `sort_order` 整数列；`PATCH /api/modules/:mid/bullets/:bid` 支持更新排序；UI 在拖拽松手时批量提交 |
 | **PDF 存内存，重启失效** | PDF 编译结果存于 `pdfStore`（进程内 Map），服务重启后 URL 立即失效 | 编译后将 PDF 写入 Volume（如 `/app/data/pdf/<uuid>.pdf`），提供一个清理 cron 任务，下载路由直接读文件 |
-| **Access token 过期需重新登录** | access_token 有效期仅 1 小时；ChatGPT 的 OAuth 实现有时无法自动用 refresh_token 续期 | 可将 access_token 有效期延长至 24 小时，降低触发频率；或在 GPT Instructions 中指导用户遇到鉴权失败时重新触发任意 Action |
+
+> 以下问题已在当前版本修复：bullet 排序（`sort_order` 字段 + 拖拽提交）、access_token 有效期（已延长至 7 天）。
 
 ### 中优先级
 
@@ -441,9 +457,10 @@ curl -X DELETE \
 |------|------|
 | **无邮箱验证** | 注册时不验证邮箱真实性，任意字符串均可注册 |
 | **无 API 限速** | 后端未配置 Rate Limiting，高频调用（如批量 `storeModules`）可能造成资源压力 |
-| **Context tags 在 UI 中不可编辑** | 经历库 UI 中，标签（`finance`、`consulting` 等）由 GPT 存入，在网页端只读显示，无法手动增删 |
 | **Exemplar 库依赖人工维护** | `exemplars` 表当前只有 `data/seed/sample_exemplars.json` 中的少量样例，`matchModules` 的 exemplar 召回实际不影响主要评分，效果待验证 |
 | **模板选择无回退机制** | 若 `getLatexTemplate(Cn)` 接口调用失败，GPT 可能尝试从内存重建模板，导致格式错误 |
+
+> `context_tags` UI 内编辑已在当前版本实现（InlineEdit 支持）。
 
 ### 低优先级 / 功能扩展
 
@@ -502,7 +519,7 @@ T01, T02, T05, T06, T09, T13, T17, T23
 
 ### 7.5 当前状态
 
-评测基准已完整构建但**尚未系统运行**。建议在产品功能稳定后，按照 `benchmark_summary.md` 中的流程组织一次完整的盲评，并将结果存入 `blind_scoring_sheet.csv` 用于后续版本对比。
+评测基准数据集已完整构建（评测任务、评分维度、盲评打分表齐备），可随时作为外部基准运行。建议在下一个主要版本里按照 `benchmark_summary.md` 中的流程组织一次完整的五臂盲评，并将结果存入 `blind_scoring_sheet.csv` 用于版本纵向对比。
 
 ---
 
