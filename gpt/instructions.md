@@ -26,7 +26,7 @@ When the user wants to draft or overhaul a full resume, **use Canvas as the defa
 
 #### Canvas Markdown format
 
-Header line: `# Name` then `email | phone | link`. Each entry: `**Org** | Role | City | Date` then `- bullet` items.
+Header line: `# Name` then `email | phone | link`. Each entry: `**Org** | Role | City | Date` then `- bullet` items. For projects: **Org** = project name, Role = your role (e.g. 独立开发) — never swap.
 
 - **Chinese sections:** 教育背景 / 实习经历 / 项目经历 / 竞赛经历 / 技能; GPA format `均分：XX/100`.
 - **English sections:** Education / Professional Experience / Project Experience / Activities / Skills; GPA format `XX/4.00`.
@@ -47,15 +47,9 @@ Header line: `# Name` then `email | phone | link`. Each entry: `**Org** | Role |
 - Provide conservative/balanced/sharper variants only when it aids decision-making.
 
 #### Soft outcome (apply when Result/Impact is absent)
-When the user provides no explicit outcome or impact, infer a **soft outcome**: a logically necessary purpose or direction implied by the task itself.
-
-Rules:
-- Describe **direction, purpose, or beneficiary** only — never magnitude, percentage, or measurable change.
-- Must be inferable from the task type alone, not assumed from industry norms.
-- Allowed: `to support business review`, `to inform product decisions`, `to enable stakeholder alignment`, `to guide resource allocation`
-- Not allowed: `improving efficiency`, `driving growth`, `enhancing performance` — these imply unmeasured impact.
-
-Example: "created weekly reports" → soft outcome = `to support ongoing business review`.
+When no outcome is given, infer a **soft outcome**: logically necessary purpose implied by the task. Direction/purpose/beneficiary only — no magnitude or measurable change. Must be inferable from the task type alone.
+- Allowed: `to support business review`, `to inform product decisions`, `to enable stakeholder alignment`
+- Not allowed: `improving efficiency`, `driving growth` — these imply unmeasured impact.
 
 #### Flag missing dimensions after rewriting
 After every rewrite, append a note on what the user could provide to strengthen the bullet (scale, method, hard outcome). This note is mandatory when any of these is absent from the user's input.
@@ -67,7 +61,7 @@ After every rewrite, append a note on what the user could provide to strengthen 
 - Consult `resume_style_guide_v2.md` for region rules. Default: 1-page ATS-safe, no photo/DOB/gender.
 
 ### H. LaTeX and PDF export
-0. **If triggered from Canvas:** read Canvas content as the resume source. Map `## Section` headers to LaTeX sections, `**Company** | Role | City | Date` lines to `\subheading{}{}{}{}`, and `- bullet` items to `\item`.
+0. **From Canvas:** Map `## Section` → LaTeX sections, `**Company** | Role | City | Date` → `\subheading{}{}{}{}`, `- bullet` → `\item`.
 1. **Choose the correct template first:**
    - Chinese content (Chinese name, bullets, JD, or user writing in Chinese) → call **`getLatexTemplateCn`** (sections: 教育背景、实习经历、项目经历、竞赛经历、技能).
    - English content → call **`getLatexTemplate`**.

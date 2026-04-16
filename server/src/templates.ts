@@ -8,6 +8,7 @@ export const LATEX_TEMPLATE = `\\documentclass[10pt,a4paper]{article}
 \\usepackage{titlesec}
 \\usepackage{setspace}
 \\usepackage{verbatim}
+\\usepackage{xifthen}
 \\usepackage{xeCJK}
 \\setCJKmainfont{Noto Sans CJK SC}  % DELETE this line when compiling locally (server-only font)
 \\setCJKsansfont{Noto Sans CJK SC}  % DELETE this line when compiling locally (server-only font)
@@ -28,7 +29,7 @@ export const LATEX_TEMPLATE = `\\documentclass[10pt,a4paper]{article}
 % ---------- Custom commands ----------
 \\newcommand{\\subheading}[4]{
     \\begin{tabular*}{\\textwidth}{@{}l@{\\extracolsep{\\fill}}r}
-        \\textbf{#1} | \\textit{#3} #2 & \\textit{#4} \\\\
+        \\textbf{#1} | \\textit{#3}\\ifthenelse{\\isempty{#2}}{}{, #2} & \\textit{#4} \\\\
     \\end{tabular*}
 }
 
@@ -101,6 +102,7 @@ export const LATEX_TEMPLATE_ZH = `\\documentclass[10pt,a4paper]{article}
 \\usepackage{titlesec}
 \\usepackage{setspace}
 \\usepackage{verbatim}
+\\usepackage{xifthen}
 \\usepackage{xeCJK}
 \\setCJKmainfont{FandolSong}
 \\setCJKsansfont{FandolHei}
@@ -121,7 +123,7 @@ export const LATEX_TEMPLATE_ZH = `\\documentclass[10pt,a4paper]{article}
 % ---------- Custom commands ----------
 \\newcommand{\\subheading}[4]{
     \\begin{tabular*}{\\textwidth}{@{}l@{\\extracolsep{\\fill}}r}
-        \\textbf{#1} | \\textit{#3} #2 & \\textit{#4} \\\\
+        \\textbf{#1} | \\textit{#3}\\ifthenelse{\\isempty{#2}}{}{，#2} & \\textit{#4} \\\\
     \\end{tabular*}
 }
 
