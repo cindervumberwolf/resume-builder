@@ -46,7 +46,18 @@ interface ModuleRow {
   context_tags: string;
   base_priority: number;
   source_type: string;
+  gpa: string | null;
+  coursework: string | null;
   created_at: string;
+}
+
+export interface UserProfile {
+  user_id: string;
+  display_name: string;
+  email: string;
+  phone: string;
+  linkedin_url: string;
+  github_url: string;
 }
 
 interface BulletRow {
@@ -307,6 +318,8 @@ export function listModules(userId: string): (ExperienceModule & { bullets: Bull
       context_tags: JSON.parse(mod.context_tags),
       base_priority: mod.base_priority,
       source_type: mod.source_type as ExperienceModule["source_type"],
+      gpa: mod.gpa ?? undefined,
+      coursework: mod.coursework ?? undefined,
       bullets: bulletRows.map(parseBulletRow),
     };
   });
@@ -331,6 +344,8 @@ export function getModuleWithBullets(moduleId: string, userId: string) {
     context_tags: JSON.parse(mod.context_tags),
     base_priority: mod.base_priority,
     source_type: mod.source_type,
+    gpa: mod.gpa ?? undefined,
+    coursework: mod.coursework ?? undefined,
     bullets: bulletRows.map(parseBulletRow),
   };
 }
@@ -352,7 +367,7 @@ export function deleteBullet(bulletId: string, userId: string): boolean {
 export function patchModule(
   moduleId: string,
   userId: string,
-  fields: Partial<Pick<ExperienceModule, "organization" | "title" | "date_range" | "location" | "section" | "type" | "context_tags" | "base_priority">>,
+  fields: Partial<Pick<ExperienceModule, "organization" | "title" | "date_range" | "location" | "section" | "type" | "context_tags" | "base_priority"> & { gpa?: string | null; coursework?: string | null }>,
 ) {
   const mod = db().prepare(
     "SELECT * FROM resume_modules WHERE module_id = ? AND user_id = ?"
@@ -368,16 +383,20 @@ export function patchModule(
     type: fields.type ?? mod.type,
     context_tags: fields.context_tags ? JSON.stringify(fields.context_tags) : mod.context_tags,
     base_priority: fields.base_priority ?? mod.base_priority,
+    gpa: "gpa" in fields ? fields.gpa ?? null : mod.gpa,
+    coursework: "coursework" in fields ? fields.coursework ?? null : mod.coursework,
   };
 
   db().prepare(`
     UPDATE resume_modules
     SET organization = ?, title = ?, date_range = ?, location = ?,
-        section = ?, type = ?, context_tags = ?, base_priority = ?
+        section = ?, type = ?, context_tags = ?, base_priority = ?,
+        gpa = ?, coursework = ?
     WHERE module_id = ? AND user_id = ?
   `).run(
     updated.organization, updated.title, updated.date_range, updated.location,
     updated.section, updated.type, updated.context_tags, updated.base_priority,
+    updated.gpa, updated.coursework,
     moduleId, userId,
   );
 
@@ -739,4 +758,33 @@ export function findMatchingSignals(terms: string[]): string[] {
     }
   }
   return matched;
+}
+
+// ---- User profile ----
+
+export function getProfile(userId: string): UserProfile | null {
+  return db().prepare("SELECT * FROM user_profile WHERE user_id = ?").get(userId) as UserProfile | null;
+}
+
+export function upsertProfile(userId: string, fields: Partial<Omit<UserProfile, "user_id">>): UserProfile {
+  const existing = getProfile(userId);
+  const data = {
+    display_name: fields.display_name ?? existing?.display_name ?? "",
+    email: fields.email ?? existing?.email ?? "",
+    phone: fields.phone ?? existing?.phone ?? "",
+    linkedin_url: fields.linkedin_url ?? existing?.linkedin_url ?? "",
+    github_url: fields.github_url ?? existing?.github_url ?? "",
+  };
+  db().prepare(`
+    INSERT INTO user_profile (user_id, display_name, email, phone, linkedin_url, github_url, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+    ON CONFLICT(user_id) DO UPDATE SET
+      display_name = excluded.display_name,
+      email = excluded.email,
+      phone = excluded.phone,
+      linkedin_url = excluded.linkedin_url,
+      github_url = excluded.github_url,
+      updated_at = excluded.updated_at
+  `).run(userId, data.display_name, data.email, data.phone, data.linkedin_url, data.github_url);
+  return { user_id: userId, ...data };
 }

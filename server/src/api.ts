@@ -7,6 +7,7 @@ import {
   listChildModules, getChildModuleWithBullets, deleteChildModule,
   patchChildModule, patchChildBullet,
   searchExemplars, findMatchingSignals,
+  getProfile, upsertProfile,
 } from "./db/client.js";
 import { JdSchema, ExperienceModuleSchema, BulletModuleSchema } from "./types/index.js";
 import { latexRouter, latexPublicRouter } from "./routes/latex.js";
@@ -278,6 +279,19 @@ app.patch("/api/children/:cid/bullets/:bid", requireAuth, (req: AuthRequest, res
   try {
     const result = patchChildBullet(String(req.params.bid), req.userId!, req.body);
     if (!result) { res.status(404).json({ error: "Child bullet not found" }); return; }
+    res.json(result);
+  } catch (e: any) { res.status(400).json({ error: e.message }); }
+});
+
+// --- User profile ---
+app.get("/api/profile", requireAuth, (req: AuthRequest, res) => {
+  const profile = getProfile(req.userId!);
+  res.json(profile ?? { user_id: req.userId, display_name: "", email: "", phone: "", linkedin_url: "", github_url: "" });
+});
+
+app.patch("/api/profile", requireAuth, (req: AuthRequest, res) => {
+  try {
+    const result = upsertProfile(req.userId!, req.body);
     res.json(result);
   } catch (e: any) { res.status(400).json({ error: e.message }); }
 });

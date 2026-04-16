@@ -64,7 +64,18 @@ export interface ResumeModule {
   context_tags: string[];
   base_priority: number;
   source_type: string;
+  gpa?: string;
+  coursework?: string;
   bullets: ModuleBullet[];
+}
+
+export interface UserProfile {
+  user_id: string;
+  display_name: string;
+  email: string;
+  phone: string;
+  linkedin_url: string;
+  github_url: string;
 }
 
 export async function fetchModules(): Promise<ResumeModule[]> {
@@ -74,9 +85,25 @@ export async function fetchModules(): Promise<ResumeModule[]> {
   return data.modules as ResumeModule[];
 }
 
+export async function fetchProfile(): Promise<UserProfile> {
+  const res = await fetch("/api/profile", { headers: authHeaders() });
+  if (!res.ok) throw new Error("Failed to fetch profile");
+  return res.json();
+}
+
+export async function patchProfileApi(fields: Partial<Omit<UserProfile, "user_id">>): Promise<UserProfile> {
+  const res = await fetch("/api/profile", {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Failed to save profile");
+  return res.json();
+}
+
 export async function patchModuleApi(
   moduleId: string,
-  fields: Partial<Pick<ResumeModule, "organization" | "title" | "date_range" | "location" | "section" | "type" | "context_tags" | "base_priority">>,
+  fields: Partial<Pick<ResumeModule, "organization" | "title" | "date_range" | "location" | "section" | "type" | "context_tags" | "base_priority" | "gpa" | "coursework">>,
 ): Promise<ResumeModule> {
   const res = await fetch(`/api/modules/${moduleId}`, {
     method: "PATCH",

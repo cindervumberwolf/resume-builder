@@ -138,6 +138,16 @@ export function initializeDatabase(db: Database.Database): void {
       created_at  TEXT NOT NULL DEFAULT (datetime('now')),
       updated_at  TEXT NOT NULL DEFAULT (datetime('now'))
     );
+
+    CREATE TABLE IF NOT EXISTS user_profile (
+      user_id      TEXT PRIMARY KEY REFERENCES users(user_id) ON DELETE CASCADE,
+      display_name TEXT NOT NULL DEFAULT '',
+      email        TEXT NOT NULL DEFAULT '',
+      phone        TEXT NOT NULL DEFAULT '',
+      linkedin_url TEXT NOT NULL DEFAULT '',
+      github_url   TEXT NOT NULL DEFAULT '',
+      updated_at   TEXT NOT NULL DEFAULT (datetime('now'))
+    );
   `);
 
   // Migrate legacy tables that may exist without user_id
@@ -176,5 +186,11 @@ function migrateLegacyTables(db: Database.Database): void {
       ALTER TABLE bullets RENAME TO bullets_legacy;
       DROP TABLE IF EXISTS bullets_legacy;
     `);
+  }
+  if (!columnExists(db, "resume_modules", "gpa")) {
+    db.exec(`ALTER TABLE resume_modules ADD COLUMN gpa TEXT`);
+  }
+  if (!columnExists(db, "resume_modules", "coursework")) {
+    db.exec(`ALTER TABLE resume_modules ADD COLUMN coursework TEXT`);
   }
 }

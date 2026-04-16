@@ -6,7 +6,8 @@ import {
   patchModuleApi, patchBulletApi, addModuleApi, addBulletApi, reorderBulletsApi,
   fetchChildModules, deleteChildModuleApi, patchChildModuleApi, patchChildBulletApi,
   fetchJds, deleteJdApi,
-  type ResumeModule, type ModuleBullet, type ChildModule, type ChildBullet, type JdSummary,
+  fetchProfile, patchProfileApi,
+  type ResumeModule, type ModuleBullet, type ChildModule, type ChildBullet, type JdSummary, type UserProfile,
 } from "../api";
 
 // ============================================================
@@ -346,6 +347,60 @@ function BulletItem({ bullet, index, onSave, onDelete, onHandlePointerDown, drag
 }
 
 // ============================================================
+// ProfileSection
+// ============================================================
+function ProfileSection() {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    fetchProfile().then(setProfile).catch(() => {});
+  }, []);
+
+  const save = (fields: Partial<Omit<UserProfile, "user_id">>) => {
+    patchProfileApi(fields).then(setProfile).catch(() => {});
+  };
+
+  const rowStyle: CSSProperties = {
+    display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: 4,
+  };
+  const sepStyle: CSSProperties = { color: C.muted };
+
+  return (
+    <div style={{
+      ...cardStyle,
+      marginBottom: 16,
+      border: `1.5px solid ${C.border}`,
+      borderRadius: 12,
+      padding: "12px 16px 10px",
+    }}>
+      <div style={{ fontSize: 11, color: C.muted, marginBottom: 6, letterSpacing: 1 }}>个人信息</div>
+      {/* Name row */}
+      <div style={{ ...rowStyle, marginBottom: 4 }}>
+        <InlineEdit
+          value={profile?.display_name ?? ""}
+          onSave={v => save({ display_name: v })}
+          style={{ fontSize: 22, fontWeight: 700, color: C.keyword, letterSpacing: 0.5 }}
+          placeholder="姓名" />
+      </div>
+      {/* Contact row — matches LaTeX header: email | phone | link */}
+      <div style={{ ...rowStyle, fontSize: 13 }}>
+        <InlineEdit value={profile?.email ?? ""} onSave={v => save({ email: v })}
+          style={{ color: C.comment }} placeholder="邮箱" />
+        <span style={sepStyle}>|</span>
+        <InlineEdit value={profile?.phone ?? ""} onSave={v => save({ phone: v })}
+          style={{ color: C.comment }} placeholder="电话" />
+        <span style={sepStyle}>|</span>
+        <InlineEdit value={profile?.linkedin_url ?? ""} onSave={v => save({ linkedin_url: v })}
+          style={{ color: C.number }} placeholder="领英链接" />
+        <span style={sepStyle}>|</span>
+        <InlineEdit value={profile?.github_url ?? ""} onSave={v => save({ github_url: v })}
+          style={{ color: C.number }} placeholder="GitHub 链接" />
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // ModuleCard
 // ============================================================
 function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSaveBullet, onReorderBullets }: {
@@ -450,6 +505,18 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
           <DotMenuBtn onDelete={onDelete} />
         </div>
       </div>
+
+      {/* Education extra row: GPA + coursework */}
+      {mod.section === "education" && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: "0 12px 4px", fontSize: 13, alignItems: "baseline" }}>
+          <span style={{ color: C.muted, whiteSpace: "nowrap" }}>均分：</span>
+          <InlineEdit value={mod.gpa ?? ""} onSave={v => onUpdate({ gpa: v || undefined })}
+            style={{ color: C.number }} placeholder="3.8/4.00 或 90/100" />
+          <span style={{ color: C.muted, marginLeft: 8, whiteSpace: "nowrap" }}>相关课程：</span>
+          <InlineEdit value={mod.coursework ?? ""} onSave={v => onUpdate({ coursework: v || undefined })}
+            style={{ color: C.comment }} placeholder="课程一、课程二、课程三" />
+        </div>
+      )}
 
       {/* Tags — editable */}
       <div style={{ padding: "0 12px 6px" }}>
@@ -1043,6 +1110,7 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 20px 60px" }}>
         {activeTab === "master" ? (
           <>
+            <ProfileSection />
             {loading ? (
               <p style={{ color: C.muted, padding: 24 }}>加载中...</p>
             ) : modules.length === 0 ? (
