@@ -434,7 +434,8 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
       {/* Header row */}
       <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 4, padding: "8px 12px 4px", fontSize: 14 }}>
         <InlineEdit value={mod.organization} onSave={v => onUpdate({ organization: v })}
-          style={{ fontWeight: 700, color: C.string }} placeholder="机构名称" />
+          style={{ fontWeight: 700, color: C.string }}
+          placeholder={mod.section === "projects" ? "项目名称" : "机构名称"} />
         <span style={{ color: C.muted }}>|</span>
         <InlineEdit value={mod.title} onSave={v => onUpdate({ title: v })}
           style={{ color: C.comment }} placeholder="职位 / 角色" />
