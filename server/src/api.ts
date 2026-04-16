@@ -109,6 +109,13 @@ app.get("/api/template/latex", (_req, res) => {
   });
 });
 
+app.get("/api/template/latex/zh", (_req, res) => {
+  res.json({
+    template: LATEX_TEMPLATE_ZH,
+    instructions: "Fill all [placeholder] fields with actual content. Keep all LaTeX commands, packages, and structure unchanged. Use Chinese section headers as-is.",
+  });
+});
+
 // --- Auth: editor link (requires auth, returns pre-built URL with token embedded) ---
 app.get("/api/auth/editor-link", requireAuth, (req: AuthRequest, res) => {
   const token = (req.headers.authorization ?? "").replace("Bearer ", "").trim();
