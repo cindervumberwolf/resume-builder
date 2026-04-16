@@ -34,9 +34,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
+# Expose Fandol fonts (bundled in TeX Live) to fontconfig so XeLaTeX can find them by name
+RUN mkdir -p /usr/local/share/fonts/fandol && \
+    find /usr -name "Fandol*.otf" 2>/dev/null -exec cp {} /usr/local/share/fonts/fandol/ \; && \
+    fc-cache -fv
+
 # Pre-warm fontconfig and xelatex font cache so first compilation is fast
-RUN fc-cache -fv && \
-    mkdir -p /tmp/warmup && \
+RUN mkdir -p /tmp/warmup && \
     printf '\\documentclass{article}\n\\usepackage{xeCJK}\n\\setCJKmainfont{Noto Sans CJK SC}\n\\begin{document}warmup\\end{document}' \
       > /tmp/warmup/warmup.tex && \
     cd /tmp/warmup && xelatex -interaction=nonstopmode warmup.tex || true && \
