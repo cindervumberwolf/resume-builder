@@ -5,7 +5,7 @@ import {
   fetchModules, deleteModuleApi, deleteBulletApi,
   patchModuleApi, patchBulletApi, addModuleApi, addBulletApi, reorderBulletsApi,
   fetchChildModules, deleteChildModuleApi, patchChildModuleApi, patchChildBulletApi,
-  fetchJds,
+  fetchJds, deleteJdApi,
   type ResumeModule, type ModuleBullet, type ChildModule, type ChildBullet, type JdSummary,
 } from "../api";
 
@@ -650,6 +650,139 @@ function ChildModuleCard({ mod, parentLabel, onDelete, onPatchBullet }: {
 }
 
 // ============================================================
+// JdCard
+// ============================================================
+function JdCard({ jd, onDelete }: { jd: JdSummary; onDelete: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  const [hover, setHover] = useState(false);
+
+  return (
+    <div style={{ ...cardStyle, marginBottom: 10 }}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 6, padding: "8px 12px 4px", fontSize: 14 }}>
+        <span style={{ fontWeight: 700, color: C.string, fontFamily: FONT }}>{jd.meta.company || "—"}</span>
+        <span style={{ color: C.muted }}>—</span>
+        <span style={{ color: C.comment, fontFamily: FONT }}>{jd.meta.role_title || "—"}</span>
+        {jd.meta.location && <>
+          <span style={{ color: C.muted }}>|</span>
+          <span style={{ color: C.number, fontFamily: FONT }}>{jd.meta.location}</span>
+        </>}
+        {jd.meta.team && <>
+          <span style={{ color: C.muted }}>|</span>
+          <span style={{ color: C.muted, fontFamily: FONT, fontSize: 12 }}>{jd.meta.team}</span>
+        </>}
+        <div style={{ flex: 1 }} />
+        {/* expand toggle */}
+        <button
+          onClick={() => setExpanded(v => !v)}
+          style={{
+            border: `1px solid ${C.actionBorder}`, borderRadius: 4,
+            background: C.actionBg, cursor: "pointer", fontFamily: FONT,
+            fontSize: 11, color: C.muted, padding: "1px 7px",
+          }}
+        >{expanded ? "收起" : "展开"}</button>
+        {/* delete */}
+        <div style={{ opacity: hover ? 1 : 0, transition: "opacity 0.18s ease", pointerEvents: hover ? "all" : "none", marginLeft: 4 }}>
+          <DotMenuBtn onDelete={onDelete} />
+        </div>
+      </div>
+
+      {/* Domain tags */}
+      {jd.domain_tags.length > 0 && (
+        <div style={{ padding: "2px 12px 6px", display: "flex", flexWrap: "wrap", gap: 4 }}>
+          {jd.domain_tags.map((t, i) => <span key={i} style={tagStyle}>{t}</span>)}
+        </div>
+      )}
+
+      {/* Expanded detail */}
+      {expanded && (
+        <div style={{ padding: "0 12px 10px", display: "flex", flexDirection: "column", gap: 8 }}>
+          {jd.hard_requirements.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.keyword, fontFamily: FONT, marginBottom: 3 }}>硬性要求</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {jd.hard_requirements.map((r, i) => (
+                  <span key={i} style={{ ...tagStyle, color: C.danger, borderColor: "#DDAAAA", background: "#FFF0F0" }}>{r}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {jd.soft_requirements.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.keyword, fontFamily: FONT, marginBottom: 3 }}>软性要求</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {jd.soft_requirements.map((r, i) => (
+                  <span key={i} style={tagStyle}>{r}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {jd.preferred_signals.length > 0 && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.keyword, fontFamily: FONT, marginBottom: 3 }}>加分项</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                {jd.preferred_signals.map((r, i) => (
+                  <span key={i} style={{ ...tagStyle, color: C.comment }}>{r}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {jd.raw_text && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: C.keyword, fontFamily: FONT, marginBottom: 3 }}>原文</div>
+              <pre style={{
+                fontSize: 11, color: C.muted, fontFamily: FONT, whiteSpace: "pre-wrap",
+                wordBreak: "break-word", margin: 0, maxHeight: 160, overflowY: "auto",
+                background: "#FAFAF8", border: `1px solid ${C.border}`, borderRadius: 4,
+                padding: "6px 8px", lineHeight: 1.6,
+              }}>{jd.raw_text}</pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================
+// JdTab
+// ============================================================
+function JdTab() {
+  const [jds, setJds] = useState<JdSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    setJds(await fetchJds());
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  const handleDelete = async (jobId: string) => {
+    await deleteJdApi(jobId);
+    setJds(prev => prev.filter(j => j.job_id !== jobId));
+  };
+
+  if (loading) return <p style={{ color: C.muted, padding: 24 }}>加载中...</p>;
+  if (jds.length === 0) return (
+    <div style={{ padding: 40, textAlign: "center", color: C.muted }}>
+      <p style={{ fontSize: 16, marginBottom: 8 }}>暂无已存储的 JD。</p>
+      <p style={{ fontSize: 13 }}>在 GPT 中投递 JD 后将自动存储至此。</p>
+    </div>
+  );
+
+  return (
+    <>
+      {jds.map(jd => (
+        <JdCard key={jd.job_id} jd={jd} onDelete={() => handleDelete(jd.job_id)} />
+      ))}
+    </>
+  );
+}
+
+// ============================================================
 // ChildAssetTab — grouped by JD
 // ============================================================
 function ChildAssetTab({ masterModules }: { masterModules: ResumeModule[] }) {
@@ -744,7 +877,7 @@ function ChildAssetTab({ masterModules }: { masterModules: ResumeModule[] }) {
 // ModuleLibrary
 // ============================================================
 export function ModuleLibrary({ onBack }: { onBack: () => void }) {
-  const [activeTab, setActiveTab] = useState<"master" | "child">("master");
+  const [activeTab, setActiveTab] = useState<"master" | "child" | "jd">("master");
   const [modules, setModules] = useState<ResumeModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -872,19 +1005,19 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
         <img src={logoUrl} alt="经历库" style={{ height: 36, objectFit: "contain" }} />
         {/* Tabs */}
         <div style={{ display: "flex", marginLeft: 8, gap: 0 }}>
-          {(["master", "child"] as const).map(tab => (
+          {(["master", "child", "jd"] as const).map((tab, i, arr) => (
             <button key={tab} onClick={() => setActiveTab(tab)}
               style={{
                 padding: "5px 14px", fontSize: 12, fontFamily: FONT, cursor: "pointer",
                 border: `1px solid ${C.border}`, borderBottom: activeTab === tab ? "none" : `1px solid ${C.border}`,
-                borderRadius: tab === "master" ? "4px 0 0 0" : "0 4px 0 0",
+                borderRadius: i === 0 ? "4px 0 0 0" : i === arr.length - 1 ? "0 4px 0 0" : "0",
                 background: activeTab === tab ? C.bg : C.toolbar,
                 fontWeight: activeTab === tab ? 700 : 400,
                 color: activeTab === tab ? C.keyword : C.muted,
                 position: "relative", zIndex: activeTab === tab ? 2 : 1,
                 marginBottom: activeTab === tab ? -1 : 0,
               }}>
-              {tab === "master" ? "母资产库" : "子资产库"}
+              {tab === "master" ? "母资产库" : tab === "child" ? "子资产库" : "JD 库"}
             </button>
           ))}
         </div>
@@ -952,8 +1085,10 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
               </div>
             )}
           </>
-        ) : (
+        ) : activeTab === "child" ? (
           <ChildAssetTab masterModules={modules} />
+        ) : (
+          <JdTab />
         )}
       </div>
     </div>

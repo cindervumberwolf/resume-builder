@@ -302,6 +302,14 @@ app.get("/api/jd/:id", requireAuth, (req: AuthRequest, res) => {
   res.json(jd);
 });
 
+app.delete("/api/jd/:id", requireAuth, (req: AuthRequest, res) => {
+  const result = db().prepare(
+    "DELETE FROM jd_schemas WHERE job_id = ? AND user_id = ?"
+  ).run(String(req.params.id), req.userId!);
+  if (result.changes === 0) { res.status(404).json({ error: "JD not found" }); return; }
+  res.status(204).end();
+});
+
 // --- Match (searches both master + child assets) ---
 app.post("/api/match", requireAuth, (req: AuthRequest, res) => {
   const { job_id, domain_tags, required_signals, max_modules = 5, max_bullets_per_module = 3 } = req.body;

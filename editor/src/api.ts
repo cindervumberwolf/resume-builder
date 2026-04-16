@@ -250,7 +250,20 @@ export async function patchChildBulletApi(
 
 export interface JdSummary {
   job_id: string;
-  meta: { company: string; role_title: string; location?: string };
+  raw_text: string;
+  meta: {
+    company: string;
+    role_title: string;
+    location?: string;
+    team?: string;
+    language?: string;
+    seniority?: string;
+  };
+  hard_requirements: string[];
+  soft_requirements: string[];
+  preferred_signals: string[];
+  domain_tags: string[];
+  created_at?: string;
 }
 
 export async function fetchJds(): Promise<JdSummary[]> {
@@ -258,6 +271,14 @@ export async function fetchJds(): Promise<JdSummary[]> {
   if (!res.ok) return [];
   const data = await res.json();
   return data.jds as JdSummary[];
+}
+
+export async function deleteJdApi(jobId: string): Promise<void> {
+  const res = await fetch(`/api/jd/${jobId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to delete JD");
 }
 
 // ---- LaTeX compilation ----
