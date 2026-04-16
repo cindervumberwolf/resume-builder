@@ -64,6 +64,39 @@ interface BulletRow {
   created_at: string;
 }
 
+interface ChildModuleRow {
+  child_module_id: string;
+  user_id: string;
+  parent_module_id: string;
+  section: string;
+  organization: string;
+  title: string;
+  date_range: string;
+  location: string | null;
+  context_tags: string;
+  created_at: string;
+}
+
+interface ChildBulletRow {
+  child_bullet_id: string;
+  child_module_id: string;
+  parent_bullet_id: string | null;
+  user_id: string;
+  raw_fact: string;
+  evidence_tags: string;
+  skill_tags: string;
+  role_fit_tags: string;
+  sort_order: number;
+  created_at: string;
+}
+
+interface ChildJdLinkRow {
+  child_module_id: string;
+  job_id: string;
+  user_id: string;
+  linked_at: string;
+}
+
 interface ExemplarRow {
   exemplar_id: string;
   source: string;
@@ -484,6 +517,215 @@ export function reorderBullets(moduleId: string, userId: string, bulletIds: stri
     });
   });
   tx();
+}
+
+// ---- Child asset operations ----
+
+export interface ChildModule {
+  child_module_id: string;
+  parent_module_id: string;
+  section: string;
+  organization: string;
+  title: string;
+  date_range: string;
+  location?: string;
+  context_tags: string[];
+  created_at: string;
+}
+
+export interface ChildBullet {
+  child_bullet_id: string;
+  child_module_id: string;
+  parent_bullet_id: string | null;
+  raw_fact: string;
+  evidence_tags: string[];
+  skill_tags: string[];
+  role_fit_tags: string[];
+  sort_order: number;
+}
+
+export function upsertChildModule(
+  mod: { child_module_id: string; parent_module_id: string; section: string; organization: string; title: string; date_range: string; location?: string; context_tags: string[] },
+  userId: string,
+): void {
+  db().prepare(`
+    INSERT OR REPLACE INTO child_modules
+      (child_module_id, user_id, parent_module_id, section, organization, title, date_range, location, context_tags)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    mod.child_module_id, userId, mod.parent_module_id, mod.section,
+    mod.organization, mod.title, mod.date_range, mod.location ?? null,
+    JSON.stringify(mod.context_tags),
+  );
+}
+
+export function upsertChildBullet(
+  bullet: { child_bullet_id: string; child_module_id: string; parent_bullet_id?: string; raw_fact: string; evidence_tags: string[]; skill_tags: string[]; role_fit_tags: string[] },
+  userId: string,
+  sortOrder?: number,
+): void {
+  db().prepare(`
+    INSERT OR REPLACE INTO child_bullets
+      (child_bullet_id, child_module_id, parent_bullet_id, user_id, raw_fact, evidence_tags, skill_tags, role_fit_tags, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    bullet.child_bullet_id, bullet.child_module_id, bullet.parent_bullet_id ?? null,
+    userId, bullet.raw_fact,
+    JSON.stringify(bullet.evidence_tags), JSON.stringify(bullet.skill_tags),
+    JSON.stringify(bullet.role_fit_tags), sortOrder ?? 0,
+  );
+}
+
+export function linkChildJd(childModuleId: string, jobId: string, userId: string): void {
+  db().prepare(`
+    INSERT OR IGNORE INTO child_jd_links (child_module_id, job_id, user_id) VALUES (?, ?, ?)
+  `).run(childModuleId, jobId, userId);
+}
+
+function parseChildBulletRow(row: ChildBulletRow): ChildBullet {
+  return {
+    child_bullet_id: row.child_bullet_id,
+    child_module_id: row.child_module_id,
+    parent_bullet_id: row.parent_bullet_id,
+    raw_fact: row.raw_fact,
+    evidence_tags: JSON.parse(row.evidence_tags),
+    skill_tags: JSON.parse(row.skill_tags),
+    role_fit_tags: JSON.parse(row.role_fit_tags),
+    sort_order: row.sort_order,
+  };
+}
+
+export function listChildModules(userId: string, jobId?: string): (ChildModule & { bullets: ChildBullet[]; source_jd_ids: string[] })[] {
+  let modRows: ChildModuleRow[];
+  if (jobId) {
+    modRows = db().prepare(`
+      SELECT cm.* FROM child_modules cm
+      JOIN child_jd_links cjl ON cm.child_module_id = cjl.child_module_id AND cm.user_id = cjl.user_id
+      WHERE cm.user_id = ? AND cjl.job_id = ?
+      ORDER BY cm.created_at DESC
+    `).all(userId, jobId) as ChildModuleRow[];
+  } else {
+    modRows = db().prepare(
+      `SELECT * FROM child_modules WHERE user_id = ? ORDER BY created_at DESC`
+    ).all(userId) as ChildModuleRow[];
+  }
+
+  return modRows.map(mod => {
+    const bulletRows = db().prepare(
+      `SELECT * FROM child_bullets WHERE child_module_id = ? AND user_id = ? ORDER BY sort_order ASC, created_at ASC`
+    ).all(mod.child_module_id, userId) as ChildBulletRow[];
+
+    const jdLinks = db().prepare(
+      `SELECT job_id FROM child_jd_links WHERE child_module_id = ? AND user_id = ?`
+    ).all(mod.child_module_id, userId) as { job_id: string }[];
+
+    return {
+      child_module_id: mod.child_module_id,
+      parent_module_id: mod.parent_module_id,
+      section: mod.section,
+      organization: mod.organization,
+      title: mod.title,
+      date_range: mod.date_range,
+      location: mod.location ?? undefined,
+      context_tags: JSON.parse(mod.context_tags),
+      created_at: mod.created_at,
+      bullets: bulletRows.map(parseChildBulletRow),
+      source_jd_ids: jdLinks.map(l => l.job_id),
+    };
+  });
+}
+
+export function getChildModuleWithBullets(childModuleId: string, userId: string) {
+  const mod = db().prepare(
+    `SELECT * FROM child_modules WHERE child_module_id = ? AND user_id = ?`
+  ).get(childModuleId, userId) as ChildModuleRow | undefined;
+  if (!mod) return null;
+
+  const bulletRows = db().prepare(
+    `SELECT * FROM child_bullets WHERE child_module_id = ? AND user_id = ? ORDER BY sort_order ASC, created_at ASC`
+  ).all(childModuleId, userId) as ChildBulletRow[];
+
+  const jdLinks = db().prepare(
+    `SELECT job_id FROM child_jd_links WHERE child_module_id = ? AND user_id = ?`
+  ).all(childModuleId, userId) as { job_id: string }[];
+
+  return {
+    child_module_id: mod.child_module_id,
+    parent_module_id: mod.parent_module_id,
+    section: mod.section,
+    organization: mod.organization,
+    title: mod.title,
+    date_range: mod.date_range,
+    location: mod.location ?? undefined,
+    context_tags: JSON.parse(mod.context_tags),
+    created_at: mod.created_at,
+    bullets: bulletRows.map(parseChildBulletRow),
+    source_jd_ids: jdLinks.map(l => l.job_id),
+  };
+}
+
+export function deleteChildModule(childModuleId: string, userId: string): boolean {
+  const tx = db().transaction(() => {
+    db().prepare("DELETE FROM child_bullets WHERE child_module_id = ? AND user_id = ?").run(childModuleId, userId);
+    db().prepare("DELETE FROM child_jd_links WHERE child_module_id = ? AND user_id = ?").run(childModuleId, userId);
+    const result = db().prepare("DELETE FROM child_modules WHERE child_module_id = ? AND user_id = ?").run(childModuleId, userId);
+    return result.changes > 0;
+  });
+  return tx();
+}
+
+export function patchChildModule(
+  childModuleId: string,
+  userId: string,
+  fields: Partial<Pick<ChildModule, "organization" | "title" | "date_range" | "location" | "section" | "context_tags">>,
+) {
+  const mod = db().prepare(
+    "SELECT * FROM child_modules WHERE child_module_id = ? AND user_id = ?"
+  ).get(childModuleId, userId) as ChildModuleRow | undefined;
+  if (!mod) return null;
+
+  db().prepare(`
+    UPDATE child_modules
+    SET organization = ?, title = ?, date_range = ?, location = ?, section = ?, context_tags = ?
+    WHERE child_module_id = ? AND user_id = ?
+  `).run(
+    fields.organization ?? mod.organization,
+    fields.title ?? mod.title,
+    fields.date_range ?? mod.date_range,
+    fields.location ?? mod.location,
+    fields.section ?? mod.section,
+    fields.context_tags ? JSON.stringify(fields.context_tags) : mod.context_tags,
+    childModuleId, userId,
+  );
+
+  return getChildModuleWithBullets(childModuleId, userId);
+}
+
+export function patchChildBullet(
+  childBulletId: string,
+  userId: string,
+  fields: Partial<Pick<ChildBullet, "raw_fact" | "evidence_tags" | "skill_tags" | "role_fit_tags">>,
+) {
+  const row = db().prepare(
+    "SELECT * FROM child_bullets WHERE child_bullet_id = ? AND user_id = ?"
+  ).get(childBulletId, userId) as ChildBulletRow | undefined;
+  if (!row) return null;
+
+  db().prepare(`
+    UPDATE child_bullets SET raw_fact = ?, evidence_tags = ?, skill_tags = ?, role_fit_tags = ?
+    WHERE child_bullet_id = ? AND user_id = ?
+  `).run(
+    fields.raw_fact ?? row.raw_fact,
+    fields.evidence_tags ? JSON.stringify(fields.evidence_tags) : row.evidence_tags,
+    fields.skill_tags ? JSON.stringify(fields.skill_tags) : row.skill_tags,
+    fields.role_fit_tags ? JSON.stringify(fields.role_fit_tags) : row.role_fit_tags,
+    childBulletId, userId,
+  );
+
+  return parseChildBulletRow(
+    db().prepare("SELECT * FROM child_bullets WHERE child_bullet_id = ? AND user_id = ?")
+      .get(childBulletId, userId) as ChildBulletRow
+  );
 }
 
 export function findMatchingSignals(terms: string[]): string[] {

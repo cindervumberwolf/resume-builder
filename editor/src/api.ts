@@ -178,6 +178,88 @@ export async function addBulletApi(moduleId: string): Promise<ModuleBullet> {
   };
 }
 
+// ---- Child assets (JD-optimized) ----
+
+export interface ChildBullet {
+  child_bullet_id: string;
+  child_module_id: string;
+  parent_bullet_id: string | null;
+  raw_fact: string;
+  evidence_tags: string[];
+  skill_tags: string[];
+  role_fit_tags: string[];
+  sort_order: number;
+}
+
+export interface ChildModule {
+  child_module_id: string;
+  parent_module_id: string;
+  section: string;
+  organization: string;
+  title: string;
+  date_range: string;
+  location?: string;
+  context_tags: string[];
+  created_at: string;
+  bullets: ChildBullet[];
+  source_jd_ids: string[];
+}
+
+export async function fetchChildModules(jobId?: string): Promise<ChildModule[]> {
+  const qs = jobId ? `?job_id=${encodeURIComponent(jobId)}` : "";
+  const res = await fetch(`/api/children${qs}`, { headers: authHeaders() });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.modules as ChildModule[];
+}
+
+export async function deleteChildModuleApi(childModuleId: string): Promise<void> {
+  const res = await fetch(`/api/children/${childModuleId}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  if (!res.ok) throw new Error("Failed to delete child module");
+}
+
+export async function patchChildModuleApi(
+  childModuleId: string,
+  fields: Partial<Pick<ChildModule, "organization" | "title" | "date_range" | "location" | "section" | "context_tags">>,
+): Promise<ChildModule> {
+  const res = await fetch(`/api/children/${childModuleId}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Failed to update child module");
+  return res.json();
+}
+
+export async function patchChildBulletApi(
+  childModuleId: string,
+  childBulletId: string,
+  fields: Partial<Pick<ChildBullet, "raw_fact" | "evidence_tags" | "skill_tags" | "role_fit_tags">>,
+): Promise<ChildBullet> {
+  const res = await fetch(`/api/children/${childModuleId}/bullets/${childBulletId}`, {
+    method: "PATCH",
+    headers: authHeaders(),
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) throw new Error("Failed to update child bullet");
+  return res.json();
+}
+
+export interface JdSummary {
+  job_id: string;
+  meta: { company: string; role_title: string; location?: string };
+}
+
+export async function fetchJds(): Promise<JdSummary[]> {
+  const res = await fetch("/api/jd", { headers: authHeaders() });
+  if (!res.ok) return [];
+  const data = await res.json();
+  return data.jds as JdSummary[];
+}
+
 // ---- LaTeX compilation ----
 
 export async function compileLaTeX(latexSource: string): Promise<{ pdf_url: string; size_bytes: number }> {

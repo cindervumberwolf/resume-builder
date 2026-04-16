@@ -4,7 +4,9 @@ import logoUrl from "../assets/logo.png";
 import {
   fetchModules, deleteModuleApi, deleteBulletApi,
   patchModuleApi, patchBulletApi, addModuleApi, addBulletApi, reorderBulletsApi,
-  type ResumeModule, type ModuleBullet,
+  fetchChildModules, deleteChildModuleApi, patchChildModuleApi, patchChildBulletApi,
+  fetchJds,
+  type ResumeModule, type ModuleBullet, type ChildModule, type ChildBullet, type JdSummary,
 } from "../api";
 
 // ============================================================
@@ -596,9 +598,153 @@ function SectionHeader({ label, onAdd, onDelete }: {
 }
 
 // ============================================================
+// ChildModuleCard — read-only-ish card for child assets
+// ============================================================
+function ChildModuleCard({ mod, parentLabel, onDelete, onPatchBullet }: {
+  mod: ChildModule;
+  parentLabel: string;
+  onDelete: () => void;
+  onPatchBullet: (childBulletId: string, raw_fact: string) => void;
+}) {
+  const [headerHover, setHeaderHover] = useState(false);
+  return (
+    <div style={cardStyle}
+      onMouseEnter={() => setHeaderHover(true)} onMouseLeave={() => setHeaderHover(false)}>
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 4, padding: "8px 12px 4px", fontSize: 14 }}>
+        <span style={{ fontWeight: 700, color: C.string, fontFamily: FONT }}>{mod.organization || "—"}</span>
+        <span style={{ color: C.muted }}>|</span>
+        <span style={{ color: C.comment, fontFamily: FONT }}>{mod.title || "—"}</span>
+        <span style={{ color: C.muted }}>|</span>
+        <span style={{ color: C.number, fontFamily: FONT }}>{mod.location || ""}</span>
+        <div style={{ flex: 1 }} />
+        <span style={{ color: C.muted, fontSize: 12, fontFamily: FONT }}>{mod.date_range}</span>
+        <div style={{ opacity: headerHover ? 1 : 0, transition: "opacity 0.18s ease", pointerEvents: headerHover ? "all" : "none", marginLeft: 4 }}>
+          <DotMenuBtn onDelete={onDelete} />
+        </div>
+      </div>
+
+      {/* Provenance */}
+      <div style={{ padding: "0 12px 4px", fontSize: 11, color: C.muted, fontFamily: FONT }}>
+        ← 母模块: {parentLabel}
+      </div>
+
+      {/* Tags */}
+      <div style={{ padding: "0 12px 6px", display: "flex", flexWrap: "wrap", gap: 4 }}>
+        {mod.context_tags.map((t, i) => <span key={i} style={tagStyle}>{t}</span>)}
+      </div>
+
+      {/* Bullets — editable text */}
+      <div style={{ padding: "0 12px 8px" }}>
+        {mod.bullets.map(b => (
+          <div key={b.child_bullet_id} style={{ display: "flex", alignItems: "flex-start", padding: "2px 0" }}>
+            <span style={{ color: C.preproc, marginRight: 8, marginTop: 2, flexShrink: 0, fontSize: 14 }}>•</span>
+            <div style={{ flex: 1, fontSize: 14, color: C.text, lineHeight: 1.6 }}>
+              <InlineEdit value={b.raw_fact} onSave={v => onPatchBullet(b.child_bullet_id, v)} placeholder="点击编辑" multiline />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
+// ChildAssetTab — grouped by JD
+// ============================================================
+function ChildAssetTab({ masterModules }: { masterModules: ResumeModule[] }) {
+  const [children, setChildren] = useState<ChildModule[]>([]);
+  const [jds, setJds] = useState<JdSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const reload = useCallback(async () => {
+    setLoading(true);
+    const [cm, jd] = await Promise.all([fetchChildModules(), fetchJds()]);
+    setChildren(cm);
+    setJds(jd);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  const jdMap = new Map(jds.map(j => [j.job_id, j]));
+  const masterMap = new Map(masterModules.map(m => [m.module_id, m]));
+
+  const parentLabel = (parentId: string) => {
+    const m = masterMap.get(parentId);
+    return m ? `${m.organization} | ${m.title}` : parentId.slice(0, 8);
+  };
+
+  // Group children by their first source JD; orphans go under "未关联 JD"
+  const groupedByJd = new Map<string, ChildModule[]>();
+  const ORPHAN_KEY = "__unlinked__";
+
+  for (const cm of children) {
+    const key = cm.source_jd_ids.length > 0 ? cm.source_jd_ids[0] : ORPHAN_KEY;
+    if (!groupedByJd.has(key)) groupedByJd.set(key, []);
+    groupedByJd.get(key)!.push(cm);
+  }
+
+  const handleDelete = async (id: string) => {
+    await deleteChildModuleApi(id);
+    setChildren(prev => prev.filter(c => c.child_module_id !== id));
+  };
+
+  const handlePatchBullet = async (cm: ChildModule, childBulletId: string, raw_fact: string) => {
+    const updated = await patchChildBulletApi(cm.child_module_id, childBulletId, { raw_fact });
+    setChildren(prev => prev.map(c =>
+      c.child_module_id === cm.child_module_id
+        ? { ...c, bullets: c.bullets.map(b => b.child_bullet_id === childBulletId ? { ...b, ...updated } : b) }
+        : c
+    ));
+  };
+
+  if (loading) return <p style={{ color: C.muted, padding: 24 }}>加载中...</p>;
+  if (children.length === 0) return (
+    <div style={{ padding: 40, textAlign: "center", color: C.muted }}>
+      <p style={{ fontSize: 16, marginBottom: 8 }}>暂无子资产。</p>
+      <p style={{ fontSize: 13 }}>编译 PDF 后 GPT 将自动存储 JD 优化版本至此。</p>
+    </div>
+  );
+
+  return (
+    <>
+      {Array.from(groupedByJd.entries()).map(([jdKey, mods]) => {
+        const jd = jdMap.get(jdKey);
+        const jdTitle = jdKey === ORPHAN_KEY
+          ? "未关联 JD"
+          : jd ? `${jd.meta.company} — ${jd.meta.role_title}` : jdKey.slice(0, 12);
+        return (
+          <div key={jdKey} style={sectionContainerStyle}>
+            <div style={{ marginBottom: 8, borderBottom: `1px solid ${C.border}`, paddingBottom: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: C.keyword, letterSpacing: "0.08em", fontFamily: FONT }}>
+                {jdTitle}
+              </span>
+              {jd?.meta.location && (
+                <span style={{ fontSize: 11, color: C.muted, marginLeft: 8, fontFamily: FONT }}>{jd.meta.location}</span>
+              )}
+            </div>
+            {mods.map(cm => (
+              <ChildModuleCard
+                key={cm.child_module_id}
+                mod={cm}
+                parentLabel={parentLabel(cm.parent_module_id)}
+                onDelete={() => handleDelete(cm.child_module_id)}
+                onPatchBullet={(bid, v) => handlePatchBullet(cm, bid, v)}
+              />
+            ))}
+          </div>
+        );
+      })}
+    </>
+  );
+}
+
+// ============================================================
 // ModuleLibrary
 // ============================================================
 export function ModuleLibrary({ onBack }: { onBack: () => void }) {
+  const [activeTab, setActiveTab] = useState<"master" | "child">("master");
   const [modules, setModules] = useState<ResumeModule[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("all");
@@ -714,9 +860,7 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
 
   const handleReorderBullets = (moduleId: string, bullets: ModuleBullet[]) => {
     setModulesWithHistory(modules.map(m => m.module_id === moduleId ? { ...m, bullets } : m));
-    reorderBulletsApi(moduleId, bullets.map(b => b.bullet_id)).catch(() => {
-      // Non-critical: order is already updated in local state
-    });
+    reorderBulletsApi(moduleId, bullets.map(b => b.bullet_id)).catch(() => {});
   };
 
   const totalBullets = modules.reduce((s, m) => s + m.bullets.length, 0);
@@ -726,62 +870,90 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
       {/* Toolbar */}
       <div style={toolbarStyle}>
         <img src={logoUrl} alt="经历库" style={{ height: 36, objectFit: "contain" }} />
-        <span style={{ fontSize: 12, color: C.muted, marginLeft: 4 }}>
-          {modules.length} 个子模块，{totalBullets} 条经历
+        {/* Tabs */}
+        <div style={{ display: "flex", marginLeft: 8, gap: 0 }}>
+          {(["master", "child"] as const).map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              style={{
+                padding: "5px 14px", fontSize: 12, fontFamily: FONT, cursor: "pointer",
+                border: `1px solid ${C.border}`, borderBottom: activeTab === tab ? "none" : `1px solid ${C.border}`,
+                borderRadius: tab === "master" ? "4px 0 0 0" : "0 4px 0 0",
+                background: activeTab === tab ? C.bg : C.toolbar,
+                fontWeight: activeTab === tab ? 700 : 400,
+                color: activeTab === tab ? C.keyword : C.muted,
+                position: "relative", zIndex: activeTab === tab ? 2 : 1,
+                marginBottom: activeTab === tab ? -1 : 0,
+              }}>
+              {tab === "master" ? "母资产库" : "子资产库"}
+            </button>
+          ))}
+        </div>
+        <span style={{ fontSize: 12, color: C.muted, marginLeft: 8 }}>
+          {activeTab === "master" ? `${modules.length} 个模块，${totalBullets} 条经历` : ""}
         </span>
         <div style={{ flex: 1 }} />
-        <button style={iconBtnStyle} onClick={handleUndo} title="撤销 (Ctrl+Z)">↺</button>
-        <button style={iconBtnStyle} onClick={handleRedo} title="重做 (Ctrl+Shift+Z)">↻</button>
-        <select value={filter} onChange={e => setFilter(e.target.value)} style={selectStyle}>
-          <option value="all">全部分类</option>
-          {SECTION_ORDER.map(s => <option key={s} value={s}>{SECTION_LABELS[s]}</option>)}
-        </select>
+        {activeTab === "master" && (
+          <>
+            <button style={iconBtnStyle} onClick={handleUndo} title="撤销 (Ctrl+Z)">↺</button>
+            <button style={iconBtnStyle} onClick={handleRedo} title="重做 (Ctrl+Shift+Z)">↻</button>
+            <select value={filter} onChange={e => setFilter(e.target.value)} style={selectStyle}>
+              <option value="all">全部分类</option>
+              {SECTION_ORDER.map(s => <option key={s} value={s}>{SECTION_LABELS[s]}</option>)}
+            </select>
+          </>
+        )}
         <button style={toolBtnStyle} onClick={onBack}>返回编辑器</button>
       </div>
 
       {/* Content */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 20px 60px" }}>
-        {loading ? (
-          <p style={{ color: C.muted, padding: 24 }}>加载中...</p>
-        ) : modules.length === 0 ? (
-          <div style={{ padding: 40, textAlign: "center", color: C.muted }}>
-            <p style={{ fontSize: 16, marginBottom: 8 }}>暂无已存储的经历模块。</p>
-            <p style={{ fontSize: 13 }}>在 GPT 中上传简历并存储模块后，即可在此管理。</p>
-          </div>
-        ) : (
-          grouped.map(g => (
-            <SectionGroup
-              key={g.section}
-              section={g.section} label={g.label} items={g.items}
-              onAddModule={() => handleAddModuleInSection(g.section)}
-              onDeleteSection={() => handleDeleteSection(g.section)}
-              onUpdateModule={handleUpdateModule}
-              onDeleteModule={handleDeleteModule}
-              onAddBullet={handleAddBullet}
-              onDeleteBullet={handleDeleteBullet}
-              onSaveBullet={handleSaveBullet}
-              onReorderBullets={handleReorderBullets}
-            />
-          ))
-        )}
+        {activeTab === "master" ? (
+          <>
+            {loading ? (
+              <p style={{ color: C.muted, padding: 24 }}>加载中...</p>
+            ) : modules.length === 0 ? (
+              <div style={{ padding: 40, textAlign: "center", color: C.muted }}>
+                <p style={{ fontSize: 16, marginBottom: 8 }}>暂无已存储的经历模块。</p>
+                <p style={{ fontSize: 13 }}>在 GPT 中上传简历并存储模块后，即可在此管理。</p>
+              </div>
+            ) : (
+              grouped.map(g => (
+                <SectionGroup
+                  key={g.section}
+                  section={g.section} label={g.label} items={g.items}
+                  onAddModule={() => handleAddModuleInSection(g.section)}
+                  onDeleteSection={() => handleDeleteSection(g.section)}
+                  onUpdateModule={handleUpdateModule}
+                  onDeleteModule={handleDeleteModule}
+                  onAddBullet={handleAddBullet}
+                  onDeleteBullet={handleDeleteBullet}
+                  onSaveBullet={handleSaveBullet}
+                  onReorderBullets={handleReorderBullets}
+                />
+              ))
+            )}
 
-        {/* Page-bottom: add section */}
-        {!loading && (
-          <div style={{ marginTop: 16, display: "flex", justifyContent: "center", position: "relative" }}>
-            <button onClick={() => setShowSectionPicker(v => !v)} style={{
-              border: `1px dashed ${C.border}`, borderRadius: 6, background: "transparent",
-              padding: "6px 20px", fontSize: 13, color: C.muted, cursor: "pointer",
-              fontFamily: FONT, transition: "color 0.15s, border-color 0.15s",
-            }}
-              onMouseEnter={e => { e.currentTarget.style.color = C.text; e.currentTarget.style.borderColor = C.actionBorder; }}
-              onMouseLeave={e => { e.currentTarget.style.color = C.muted; e.currentTarget.style.borderColor = C.border; }}
-            >＋ 添加分类</button>
-            {showSectionPicker && (
-              <div style={{ position: "absolute", bottom: "calc(100% + 4px)", left: "50%", transform: "translateX(-50%)", zIndex: 50 }}>
-                <SectionPicker existingSections={existingSections} onPick={handleAddSection} onClose={() => setShowSectionPicker(false)} />
+            {/* Page-bottom: add section */}
+            {!loading && (
+              <div style={{ marginTop: 16, display: "flex", justifyContent: "center", position: "relative" }}>
+                <button onClick={() => setShowSectionPicker(v => !v)} style={{
+                  border: `1px dashed ${C.border}`, borderRadius: 6, background: "transparent",
+                  padding: "6px 20px", fontSize: 13, color: C.muted, cursor: "pointer",
+                  fontFamily: FONT, transition: "color 0.15s, border-color 0.15s",
+                }}
+                  onMouseEnter={e => { e.currentTarget.style.color = C.text; e.currentTarget.style.borderColor = C.actionBorder; }}
+                  onMouseLeave={e => { e.currentTarget.style.color = C.muted; e.currentTarget.style.borderColor = C.border; }}
+                >＋ 添加分类</button>
+                {showSectionPicker && (
+                  <div style={{ position: "absolute", bottom: "calc(100% + 4px)", left: "50%", transform: "translateX(-50%)", zIndex: 50 }}>
+                    <SectionPicker existingSections={existingSections} onPick={handleAddSection} onClose={() => setShowSectionPicker(false)} />
+                  </div>
+                )}
               </div>
             )}
-          </div>
+          </>
+        ) : (
+          <ChildAssetTab masterModules={modules} />
         )}
       </div>
     </div>

@@ -3,6 +3,9 @@ import {
   db, upsertJd, getJd, listJds,
   upsertModule, upsertBullet, listModules, getModuleWithBullets,
   deleteModule, deleteBullet, patchModule, patchBullet, reorderBullets,
+  upsertChildModule, upsertChildBullet, linkChildJd,
+  listChildModules, getChildModuleWithBullets, deleteChildModule,
+  patchChildModule, patchChildBullet,
   searchExemplars, findMatchingSignals,
 } from "./db/client.js";
 import { JdSchema, ExperienceModuleSchema, BulletModuleSchema } from "./types/index.js";
@@ -200,6 +203,78 @@ app.delete("/api/modules/:mid/bullets/:bid", requireAuth, (req: AuthRequest, res
   res.status(204).end();
 });
 
+// --- Child assets ---
+app.post("/api/children", requireAuth, (req: AuthRequest, res) => {
+  try {
+    const { modules, bullets, job_id } = req.body;
+    const userId = req.userId!;
+    let moduleCount = 0;
+    let bulletCount = 0;
+
+    if (modules && Array.isArray(modules)) {
+      for (const mod of modules) {
+        upsertChildModule(mod, userId);
+        if (job_id) linkChildJd(mod.child_module_id, job_id, userId);
+        moduleCount++;
+      }
+    }
+    if (bullets && Array.isArray(bullets)) {
+      const orderCounter: Record<string, number> = {};
+      for (const bullet of bullets) {
+        const order = orderCounter[bullet.child_module_id] ?? 0;
+        orderCounter[bullet.child_module_id] = order + 1;
+        upsertChildBullet(bullet, userId, order);
+        bulletCount++;
+      }
+    }
+
+    res.json({ success: true, child_modules_stored: moduleCount, child_bullets_stored: bulletCount });
+  } catch (e: any) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+app.get("/api/children", requireAuth, (req: AuthRequest, res) => {
+  const jobId = req.query.job_id ? String(req.query.job_id) : undefined;
+  const modules = listChildModules(req.userId!, jobId);
+  res.json({ modules, count: modules.length });
+});
+
+app.get("/api/children/:id", requireAuth, (req: AuthRequest, res) => {
+  const mod = getChildModuleWithBullets(String(req.params.id), req.userId!);
+  if (!mod) { res.status(404).json({ error: "Child module not found" }); return; }
+  res.json(mod);
+});
+
+app.patch("/api/children/:id", requireAuth, (req: AuthRequest, res) => {
+  try {
+    const result = patchChildModule(String(req.params.id), req.userId!, req.body);
+    if (!result) { res.status(404).json({ error: "Child module not found" }); return; }
+    res.json(result);
+  } catch (e: any) { res.status(400).json({ error: e.message }); }
+});
+
+app.delete("/api/children/:id", requireAuth, (req: AuthRequest, res) => {
+  const deleted = deleteChildModule(String(req.params.id), req.userId!);
+  if (!deleted) { res.status(404).json({ error: "Child module not found" }); return; }
+  res.status(204).end();
+});
+
+app.post("/api/children/:cid/link-jd", requireAuth, (req: AuthRequest, res) => {
+  const { job_id } = req.body;
+  if (!job_id) { res.status(400).json({ error: "job_id is required" }); return; }
+  linkChildJd(String(req.params.cid), job_id, req.userId!);
+  res.json({ success: true });
+});
+
+app.patch("/api/children/:cid/bullets/:bid", requireAuth, (req: AuthRequest, res) => {
+  try {
+    const result = patchChildBullet(String(req.params.bid), req.userId!, req.body);
+    if (!result) { res.status(404).json({ error: "Child bullet not found" }); return; }
+    res.json(result);
+  } catch (e: any) { res.status(400).json({ error: e.message }); }
+});
+
 // --- JD ---
 app.post("/api/jd", requireAuth, (req: AuthRequest, res) => {
   try {
@@ -227,7 +302,7 @@ app.get("/api/jd/:id", requireAuth, (req: AuthRequest, res) => {
   res.json(jd);
 });
 
-// --- Match ---
+// --- Match (searches both master + child assets) ---
 app.post("/api/match", requireAuth, (req: AuthRequest, res) => {
   const { job_id, domain_tags, required_signals, max_modules = 5, max_bullets_per_module = 3 } = req.body;
   const userId = req.userId!;
@@ -255,8 +330,9 @@ app.post("/api/match", requireAuth, (req: AuthRequest, res) => {
     });
   }
 
+  // Score master modules
   const allModules = listModules(userId);
-  const scored = allModules.map(mod => {
+  const masterScored = allModules.map(mod => {
     const bulletScores = mod.bullets.map(b => {
       let score = 0;
       const allTags = [...b.evidence_tags, ...b.skill_tags, ...b.role_fit_tags].map(t => t.toLowerCase());
@@ -281,6 +357,9 @@ app.post("/api/match", requireAuth, (req: AuthRequest, res) => {
       section: mod.section,
       date_range: mod.date_range,
       score,
+      is_child: false as const,
+      parent_module_id: null as string | null,
+      source_jd_ids: [] as string[],
       matched_tags: mod.context_tags.filter(t => jdTags.has(t.toLowerCase())),
       bullets: bulletScores.map(b => ({
         bullet_id: b.bullet_id,
@@ -289,9 +368,79 @@ app.post("/api/match", requireAuth, (req: AuthRequest, res) => {
         evidence_tags: b.evidence_tags,
       })),
     };
-  }).sort((a, b) => b.score - a.score).slice(0, max_modules);
+  });
 
-  res.json({ ranked_modules: scored });
+  // Score child modules (bonus +3 for being JD-optimized)
+  const CHILD_BONUS = 3;
+  const childModules = listChildModules(userId);
+  const childScored = childModules.map(cm => {
+    const bulletScores = cm.bullets.map(b => {
+      let score = 0;
+      const allTags = [...b.evidence_tags, ...b.skill_tags, ...b.role_fit_tags].map(t => t.toLowerCase());
+      for (const tag of allTags) {
+        if (jdTags.has(tag)) score += 1;
+        if (evidenceSignals.has(tag)) score += 1.5;
+      }
+      return { bullet_id: b.child_bullet_id, raw_fact: b.raw_fact, relevance_score: score, evidence_tags: b.evidence_tags };
+    }).sort((a, b) => b.relevance_score - a.relevance_score).slice(0, max_bullets_per_module);
+
+    const tagOverlap = cm.context_tags.filter(t => jdTags.has(t.toLowerCase())).length;
+    const avgBullet = bulletScores.length > 0
+      ? bulletScores.reduce((s, b) => s + b.relevance_score, 0) / bulletScores.length : 0;
+    const score = (tagOverlap * 1.5) + avgBullet + CHILD_BONUS;
+
+    return {
+      module_id: cm.child_module_id,
+      organization: cm.organization,
+      title: cm.title,
+      section: cm.section,
+      date_range: cm.date_range,
+      score,
+      is_child: true as const,
+      parent_module_id: cm.parent_module_id,
+      source_jd_ids: cm.source_jd_ids,
+      matched_tags: cm.context_tags.filter(t => jdTags.has(t.toLowerCase())),
+      bullets: bulletScores,
+    };
+  });
+
+  type ScoredModule = {
+    module_id: string; organization: string; title: string; section: string;
+    date_range: string; score: number; is_child: boolean;
+    parent_module_id: string | null; source_jd_ids: string[];
+    matched_tags: string[]; bullets: { bullet_id: string; raw_fact: string; relevance_score: number; evidence_tags: string[] }[];
+  };
+
+  // Merge: if a master module already has a higher-scoring child version, prefer it
+  const childByParent = new Map<string, ScoredModule>();
+  for (const c of childScored) {
+    const existing = childByParent.get(c.parent_module_id);
+    if (!existing || c.score > existing.score) {
+      childByParent.set(c.parent_module_id, c);
+    }
+  }
+
+  const merged: ScoredModule[] = [];
+  const usedChildIds = new Set<string>();
+
+  for (const m of masterScored) {
+    const childVersion = childByParent.get(m.module_id);
+    if (childVersion && childVersion.score > m.score) {
+      merged.push(childVersion);
+      usedChildIds.add(childVersion.module_id);
+    } else {
+      merged.push(m);
+    }
+  }
+
+  for (const c of childScored) {
+    if (!usedChildIds.has(c.module_id)) {
+      merged.push(c);
+    }
+  }
+
+  const ranked = merged.sort((a, b) => b.score - a.score).slice(0, max_modules);
+  res.json({ ranked_modules: ranked });
 });
 
 // --- LaTeX: PDF download is public (UUID acts as capability token); compile requires auth ---

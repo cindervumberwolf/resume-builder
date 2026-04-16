@@ -347,11 +347,171 @@ paths:
                   count:
                     type: integer
 
+  /api/children:
+    post:
+      operationId: storeChildModules
+      summary: Store JD-optimized child modules and bullets
+      description: Persist child (JD-optimized) versions of resume modules. Call this after PDF compilation to save the optimized content for reuse across similar JDs.
+      x-openai-isConsequential: false
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                job_id:
+                  type: string
+                  description: JD ID this optimization was based on
+                modules:
+                  type: array
+                  items:
+                    type: object
+                    required: [child_module_id, parent_module_id, section, organization, title, date_range, context_tags]
+                    properties:
+                      child_module_id:
+                        type: string
+                      parent_module_id:
+                        type: string
+                        description: ID of the master module this child derives from
+                      section:
+                        type: string
+                      organization:
+                        type: string
+                      title:
+                        type: string
+                      date_range:
+                        type: string
+                      location:
+                        type: string
+                      context_tags:
+                        type: array
+                        items:
+                          type: string
+                bullets:
+                  type: array
+                  items:
+                    type: object
+                    required: [child_bullet_id, child_module_id, raw_fact, evidence_tags, skill_tags, role_fit_tags]
+                    properties:
+                      child_bullet_id:
+                        type: string
+                      child_module_id:
+                        type: string
+                      parent_bullet_id:
+                        type: string
+                        description: ID of the master bullet this child derives from (null if entirely new)
+                      raw_fact:
+                        type: string
+                      evidence_tags:
+                        type: array
+                        items:
+                          type: string
+                      skill_tags:
+                        type: array
+                        items:
+                          type: string
+                      role_fit_tags:
+                        type: array
+                        items:
+                          type: string
+      responses:
+        "200":
+          description: Child modules stored
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  child_modules_stored:
+                    type: integer
+                  child_bullets_stored:
+                    type: integer
+    get:
+      operationId: listChildModules
+      summary: List stored child (JD-optimized) modules
+      description: Retrieve all child modules. Optionally filter by job_id query param.
+      parameters:
+        - name: job_id
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter child modules by associated JD
+      responses:
+        "200":
+          description: List of child modules
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  modules:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        child_module_id:
+                          type: string
+                        parent_module_id:
+                          type: string
+                        section:
+                          type: string
+                        organization:
+                          type: string
+                        title:
+                          type: string
+                        source_jd_ids:
+                          type: array
+                          items:
+                            type: string
+                        bullets:
+                          type: array
+                          items:
+                            type: object
+                  count:
+                    type: integer
+
+  /api/children/{cid}/link-jd:
+    post:
+      operationId: linkChildJd
+      summary: Link an existing child module to an additional JD
+      description: Associate a child module with another JD for reuse across similar positions.
+      x-openai-isConsequential: false
+      parameters:
+        - name: cid
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [job_id]
+              properties:
+                job_id:
+                  type: string
+      responses:
+        "200":
+          description: JD linked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+
   /api/match:
     post:
       operationId: matchModules
       summary: Match stored modules against a JD
-      description: Given a JD ID or skill signals, return the best-matching resume modules ranked by relevance.
+      description: Given a JD ID or skill signals, return the best-matching resume modules ranked by relevance. Searches both master and child (JD-optimized) assets. Child assets receive a scoring bonus.
       x-openai-isConsequential: false
       requestBody:
         required: true
@@ -400,6 +560,18 @@ paths:
                           type: string
                         score:
                           type: number
+                        is_child:
+                          type: boolean
+                          description: true if this is a JD-optimized child module
+                        parent_module_id:
+                          type: string
+                          nullable: true
+                          description: ID of the master module (only for child modules)
+                        source_jd_ids:
+                          type: array
+                          items:
+                            type: string
+                          description: JD IDs this child module was optimized for
                         matched_tags:
                           type: array
                           items:

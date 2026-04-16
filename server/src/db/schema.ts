@@ -95,6 +95,41 @@ export function initializeDatabase(db: Database.Database): void {
       aliases       TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS child_modules (
+      child_module_id   TEXT NOT NULL,
+      user_id           TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+      parent_module_id  TEXT NOT NULL,
+      section           TEXT NOT NULL,
+      organization      TEXT NOT NULL,
+      title             TEXT NOT NULL,
+      date_range        TEXT NOT NULL,
+      location          TEXT,
+      context_tags      TEXT NOT NULL,
+      created_at        TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, child_module_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS child_bullets (
+      child_bullet_id    TEXT PRIMARY KEY,
+      child_module_id    TEXT NOT NULL,
+      parent_bullet_id   TEXT,
+      user_id            TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
+      raw_fact           TEXT NOT NULL,
+      evidence_tags      TEXT NOT NULL,
+      skill_tags         TEXT NOT NULL,
+      role_fit_tags      TEXT NOT NULL,
+      sort_order         INTEGER NOT NULL DEFAULT 0,
+      created_at         TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
+    CREATE TABLE IF NOT EXISTS child_jd_links (
+      child_module_id  TEXT NOT NULL,
+      job_id           TEXT NOT NULL,
+      user_id          TEXT NOT NULL,
+      linked_at        TEXT NOT NULL DEFAULT (datetime('now')),
+      PRIMARY KEY (user_id, child_module_id, job_id)
+    );
+
     CREATE TABLE IF NOT EXISTS canvas_drafts (
       draft_id    TEXT PRIMARY KEY,
       user_id     TEXT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
