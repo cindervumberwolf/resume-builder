@@ -4,7 +4,7 @@
 
 [![Node 22](https://img.shields.io/badge/Node-22-green)](https://nodejs.org)
 [![Railway](https://img.shields.io/badge/Deploy-Railway-purple)](https://railway.app)
-[![License](https://img.shields.io/badge/License-Educational-blue)](./LICENSE)
+[![License: CC BY-NC-ND 4.0](https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey)](./LICENSE)
 
 **[→ 立即体验 GPT](https://chatgpt.com/g/g-69df421a0d04819194c2802f0d513260-jian-li-lao-zhong-yi)** · **[经历库 Web UI](https://resume-builder-production-229e.up.railway.app/editor?view=modules)**
 
