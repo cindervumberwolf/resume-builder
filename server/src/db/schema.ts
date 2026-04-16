@@ -73,6 +73,7 @@ export function initializeDatabase(db: Database.Database): void {
       role_fit_tags     TEXT NOT NULL,
       strength_score    TEXT NOT NULL,
       rewrite_candidates TEXT NOT NULL DEFAULT '[]',
+      sort_order        INTEGER NOT NULL DEFAULT 0,
       created_at        TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
@@ -131,6 +132,9 @@ function migrateLegacyTables(db: Database.Database): void {
   }
   if (!columnExists(db, "resume_modules", "location")) {
     db.exec(`ALTER TABLE resume_modules ADD COLUMN location TEXT`);
+  }
+  if (!columnExists(db, "bullets", "sort_order")) {
+    db.exec(`ALTER TABLE bullets ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0`);
   }
   if (!columnExists(db, "bullets", "user_id")) {
     db.exec(`

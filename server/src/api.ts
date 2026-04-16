@@ -2,7 +2,7 @@
 import {
   db, upsertJd, getJd, listJds,
   upsertModule, upsertBullet, listModules, getModuleWithBullets,
-  deleteModule, deleteBullet, patchModule, patchBullet,
+  deleteModule, deleteBullet, patchModule, patchBullet, reorderBullets,
   searchExemplars, findMatchingSignals,
 } from "./db/client.js";
 import { JdSchema, ExperienceModuleSchema, BulletModuleSchema } from "./types/index.js";
@@ -134,9 +134,13 @@ app.post("/api/modules", requireAuth, (req: AuthRequest, res) => {
       }
     }
     if (bullets && Array.isArray(bullets)) {
+      // Track sort_order per module based on array position
+      const moduleOrderCounter: Record<string, number> = {};
       for (const bullet of bullets) {
         const validated = BulletModuleSchema.parse(bullet);
-        upsertBullet(validated, userId);
+        const sortOrder = moduleOrderCounter[validated.parent_module_id] ?? 0;
+        moduleOrderCounter[validated.parent_module_id] = sortOrder + 1;
+        upsertBullet(validated, userId, sortOrder);
         bulletCount++;
       }
     }
@@ -170,6 +174,16 @@ app.delete("/api/modules/:id", requireAuth, (req: AuthRequest, res) => {
   const deleted = deleteModule(String(req.params.id), req.userId!);
   if (!deleted) { res.status(404).json({ error: "Module not found" }); return; }
   res.status(204).end();
+});
+
+// Must be defined before /:bid routes to avoid "reorder" matching :bid
+app.post("/api/modules/:mid/bullets/reorder", requireAuth, (req: AuthRequest, res) => {
+  const { bullet_ids } = req.body;
+  if (!Array.isArray(bullet_ids)) {
+    res.status(400).json({ error: "bullet_ids must be an array" }); return;
+  }
+  reorderBullets(String(req.params.mid), req.userId!, bullet_ids as string[]);
+  res.json({ success: true });
 });
 
 app.patch("/api/modules/:mid/bullets/:bid", requireAuth, (req: AuthRequest, res) => {

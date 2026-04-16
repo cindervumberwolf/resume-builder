@@ -12,7 +12,7 @@ const CLIENT_ID = process.env.OAUTH_CLIENT_ID ?? "resume-builder-gpt";
 const CLIENT_SECRET = process.env.OAUTH_CLIENT_SECRET ?? "change-me-in-production";
 
 // Token TTLs
-const ACCESS_TOKEN_SECONDS = 3600;          // 1 hour
+const ACCESS_TOKEN_SECONDS = 7 * 86400;     // 7 days
 const REFRESH_TOKEN_SECONDS = 30 * 86400;   // 30 days
 const AUTH_CODE_SECONDS = 300;              // 5 minutes
 

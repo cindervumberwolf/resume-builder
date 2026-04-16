@@ -117,6 +117,15 @@ export async function deleteBulletApi(moduleId: string, bulletId: string): Promi
   if (!res.ok) throw new Error("Failed to delete bullet");
 }
 
+export async function reorderBulletsApi(moduleId: string, bulletIds: string[]): Promise<void> {
+  const res = await fetch(`/api/modules/${moduleId}/bullets/reorder`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ bullet_ids: bulletIds }),
+  });
+  if (!res.ok) throw new Error("Failed to reorder bullets");
+}
+
 const SECTION_TYPE_MAP: Record<string, string> = {
   education: "education", experience: "experience", projects: "project",
   leadership: "leadership", awards: "award", skills: "certification",

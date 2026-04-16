@@ -60,6 +60,7 @@ interface BulletRow {
   role_fit_tags: string;
   strength_score: string;
   rewrite_candidates: string;
+  sort_order: number;
   created_at: string;
 }
 
@@ -233,17 +234,24 @@ export function upsertModule(mod: ExperienceModule, userId: string): void {
   );
 }
 
-export function upsertBullet(bullet: BulletModule, userId: string): void {
+export function upsertBullet(bullet: BulletModule, userId: string, sortOrder?: number): void {
+  // Preserve existing sort_order on update if not explicitly provided
+  const existing = sortOrder === undefined
+    ? db().prepare("SELECT sort_order FROM bullets WHERE bullet_id = ?").get(bullet.bullet_id) as { sort_order: number } | undefined
+    : undefined;
+  const order = sortOrder ?? existing?.sort_order ?? 0;
+
   db().prepare(`
     INSERT OR REPLACE INTO bullets
       (bullet_id, parent_module_id, user_id, raw_fact, normalized_fact,
-       evidence_tags, skill_tags, role_fit_tags, strength_score, rewrite_candidates)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       evidence_tags, skill_tags, role_fit_tags, strength_score, rewrite_candidates, sort_order)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
     bullet.bullet_id, bullet.parent_module_id, userId, bullet.raw_fact,
     JSON.stringify(bullet.normalized_fact), JSON.stringify(bullet.evidence_tags),
     JSON.stringify(bullet.skill_tags), JSON.stringify(bullet.role_fit_tags),
     JSON.stringify(bullet.strength_score), JSON.stringify(bullet.rewrite_candidates),
+    order,
   );
 }
 
@@ -253,7 +261,7 @@ export function listModules(userId: string): (ExperienceModule & { bullets: Bull
   ).all(userId) as ModuleRow[];
   return modules.map(mod => {
     const bulletRows = db().prepare(
-      `SELECT * FROM bullets WHERE parent_module_id = ? AND user_id = ?`
+      `SELECT * FROM bullets WHERE parent_module_id = ? AND user_id = ? ORDER BY sort_order ASC, created_at ASC`
     ).all(mod.module_id, userId) as BulletRow[];
     return {
       module_id: mod.module_id,
@@ -277,7 +285,7 @@ export function getModuleWithBullets(moduleId: string, userId: string) {
   ).get(moduleId, userId) as ModuleRow | undefined;
   if (!mod) return null;
   const bulletRows = db().prepare(
-    `SELECT * FROM bullets WHERE parent_module_id = ? AND user_id = ?`
+    `SELECT * FROM bullets WHERE parent_module_id = ? AND user_id = ? ORDER BY sort_order ASC, created_at ASC`
   ).all(moduleId, userId) as BulletRow[];
   return {
     module_id: mod.module_id,
@@ -463,6 +471,19 @@ export function listDrafts(userId: string): DraftRow[] {
 
 export function deleteDraft(draftId: string, userId: string): void {
   db().prepare("DELETE FROM canvas_drafts WHERE draft_id = ? AND user_id = ?").run(draftId, userId);
+}
+
+// ---- Bullet reorder ----
+
+export function reorderBullets(moduleId: string, userId: string, bulletIds: string[]): void {
+  const tx = db().transaction(() => {
+    bulletIds.forEach((bulletId, idx) => {
+      db().prepare(
+        "UPDATE bullets SET sort_order = ? WHERE bullet_id = ? AND parent_module_id = ? AND user_id = ?"
+      ).run(idx, bulletId, moduleId, userId);
+    });
+  });
+  tx();
 }
 
 export function findMatchingSignals(terms: string[]): string[] {

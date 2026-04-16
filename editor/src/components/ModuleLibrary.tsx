@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react";
 import logoUrl from "../assets/logo.png";
 import {
   fetchModules, deleteModuleApi, deleteBulletApi,
-  patchModuleApi, patchBulletApi, addModuleApi, addBulletApi,
+  patchModuleApi, patchBulletApi, addModuleApi, addBulletApi, reorderBulletsApi,
   type ResumeModule, type ModuleBullet,
 } from "../api";
 
@@ -114,6 +114,49 @@ function HoverReveal({ children, style }: { children: ReactNode; style?: CSSProp
       }}>
         {children}
       </div>
+    </div>
+  );
+}
+
+// ============================================================
+// TagsEdit — comma-separated tag editing
+// ============================================================
+function TagsEdit({ tags, onSave }: { tags: string[]; onSave: (tags: string[]) => void }) {
+  const [editing, setEditing] = useState(false);
+  const [text, setText] = useState(tags.join(", "));
+  useEffect(() => { setText(tags.join(", ")); }, [tags]);
+
+  const commit = () => {
+    setEditing(false);
+    const newTags = text.split(",").map(t => t.trim()).filter(Boolean);
+    if (JSON.stringify(newTags) !== JSON.stringify(tags)) onSave(newTags);
+  };
+
+  if (editing) {
+    return (
+      <input autoFocus value={text}
+        onChange={e => setText(e.target.value)}
+        onBlur={commit}
+        onKeyDown={e => {
+          if (e.key === "Enter") e.currentTarget.blur();
+          if (e.key === "Escape") { setText(tags.join(", ")); setEditing(false); }
+        }}
+        placeholder="tag1, tag2, tag3"
+        style={{
+          fontFamily: FONT, fontSize: 11, padding: "2px 6px", borderRadius: 4,
+          border: `1px solid ${C.inputBorder}`, outline: "none", background: "#FFFFF0",
+          width: "100%", color: C.text,
+        }}
+      />
+    );
+  }
+  return (
+    <div onClick={() => setEditing(true)} title="点击编辑标签（逗号分隔）"
+      style={{ cursor: "pointer", display: "flex", flexWrap: "wrap", gap: 4, minHeight: 22 }}>
+      {tags.length > 0
+        ? tags.map((t, i) => <span key={i} style={tagStyle}>{t}</span>)
+        : <span style={{ color: C.muted, fontSize: 11, fontStyle: "italic", fontFamily: FONT }}>点击添加标签</span>
+      }
     </div>
   );
 }
@@ -405,12 +448,10 @@ function ModuleCard({ mod, onUpdate, onDelete, onAddBullet, onDeleteBullet, onSa
         </div>
       </div>
 
-      {/* Tags */}
-      {(mod.context_tags ?? []).length > 0 && (
-        <div style={{ padding: "0 12px 6px", display: "flex", flexWrap: "wrap", gap: 4 }}>
-          {mod.context_tags.map((t, i) => <span key={i} style={tagStyle}>{t}</span>)}
-        </div>
-      )}
+      {/* Tags — editable */}
+      <div style={{ padding: "0 12px 6px" }}>
+        <TagsEdit tags={mod.context_tags ?? []} onSave={tags => onUpdate({ context_tags: tags })} />
+      </div>
 
       {/* Bullets */}
       <div ref={bulletsAreaRef} style={{ padding: "0 12px 2px" }}>
@@ -673,6 +714,9 @@ export function ModuleLibrary({ onBack }: { onBack: () => void }) {
 
   const handleReorderBullets = (moduleId: string, bullets: ModuleBullet[]) => {
     setModulesWithHistory(modules.map(m => m.module_id === moduleId ? { ...m, bullets } : m));
+    reorderBulletsApi(moduleId, bullets.map(b => b.bullet_id)).catch(() => {
+      // Non-critical: order is already updated in local state
+    });
   };
 
   const totalBullets = modules.reduce((s, m) => s + m.bullets.length, 0);
