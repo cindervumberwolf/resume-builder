@@ -32,6 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-fonts-extra \
     texlive-lang-chinese \
     fonts-noto-cjk \
+    fontconfig \
     && rm -rf /var/lib/apt/lists/*
 
 # Expose Fandol fonts (bundled in TeX Live) to fontconfig so XeLaTeX can find them by name
