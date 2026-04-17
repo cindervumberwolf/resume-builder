@@ -604,6 +604,33 @@ function SectionPicker({ existingSections, onPick, onClose }: {
 // ============================================================
 // SectionGroup — header + cards
 // ============================================================
+// ============================================================
+// SkillCard — simplified card for the 技能 section
+// ============================================================
+function SkillCard({ mod, onUpdate, onDelete }: {
+  mod: ResumeModule;
+  onUpdate: (fields: Partial<ResumeModule>) => void;
+  onDelete: () => void;
+}) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div style={{ ...cardStyle, marginBottom: 6 }}
+      onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <div style={{ display: "flex", alignItems: "baseline", flexWrap: "wrap", gap: 4, padding: "8px 12px 8px", fontSize: 14 }}>
+        <InlineEdit value={mod.organization} onSave={v => onUpdate({ organization: v })}
+          style={{ fontWeight: 700, color: C.string, minWidth: 60 }} placeholder="技能类型" />
+        <span style={{ color: C.muted }}>：</span>
+        <InlineEdit value={mod.title} onSave={v => onUpdate({ title: v })}
+          style={{ color: C.text, flex: 1 }} placeholder="技能内容" />
+        <div style={{ flex: 1, minWidth: 8 }} />
+        <div style={{ opacity: hover ? 1 : 0, transition: "opacity 0.18s ease", pointerEvents: hover ? "all" : "none", marginLeft: 4 }}>
+          <DotMenuBtn onDelete={onDelete} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function SectionGroup({ section, label, items, onAddModule, onDeleteSection, onUpdateModule,
   onDeleteModule, onAddBullet, onDeleteBullet, onSaveBullet, onReorderBullets }: {
   section: string; label: string; items: ResumeModule[];
@@ -615,25 +642,37 @@ function SectionGroup({ section, label, items, onAddModule, onDeleteSection, onU
   onSaveBullet: (moduleId: string, bulletId: string, v: string) => void;
   onReorderBullets: (moduleId: string, bullets: ModuleBullet[]) => void;
 }) {
+  const isSkills = section === "skills";
   return (
     <div style={sectionContainerStyle}>
-      {/* Section header — SectionHeader manages its own hover state */}
+      {/* Section header */}
       <div style={{ marginBottom: 8, borderBottom: `1px solid ${C.border}`, paddingBottom: 6 }}>
-        <SectionHeader label={label} onAdd={onAddModule} onDelete={onDeleteSection} />
+        <SectionHeader label={label} onAdd={onAddModule} onDelete={onDeleteSection} addLabel={isSkills ? "＋ 添加技能" : "＋ 添加子模块"} />
       </div>
 
-      {items.map(mod => (
-        <ModuleCard
-          key={mod.module_id}
-          mod={mod}
-          onUpdate={fields => onUpdateModule(mod, fields)}
-          onDelete={() => onDeleteModule(mod.module_id)}
-          onAddBullet={() => onAddBullet(mod.module_id)}
-          onDeleteBullet={bid => onDeleteBullet(mod.module_id, bid)}
-          onSaveBullet={(bid, v) => onSaveBullet(mod.module_id, bid, v)}
-          onReorderBullets={bullets => onReorderBullets(mod.module_id, bullets)}
-        />
-      ))}
+      {isSkills ? (
+        items.map(mod => (
+          <SkillCard
+            key={mod.module_id}
+            mod={mod}
+            onUpdate={fields => onUpdateModule(mod, fields)}
+            onDelete={() => onDeleteModule(mod.module_id)}
+          />
+        ))
+      ) : (
+        items.map(mod => (
+          <ModuleCard
+            key={mod.module_id}
+            mod={mod}
+            onUpdate={fields => onUpdateModule(mod, fields)}
+            onDelete={() => onDeleteModule(mod.module_id)}
+            onAddBullet={() => onAddBullet(mod.module_id)}
+            onDeleteBullet={bid => onDeleteBullet(mod.module_id, bid)}
+            onSaveBullet={(bid, v) => onSaveBullet(mod.module_id, bid, v)}
+            onReorderBullets={bullets => onReorderBullets(mod.module_id, bullets)}
+          />
+        ))
+      )}
     </div>
   );
 }
@@ -641,8 +680,8 @@ function SectionGroup({ section, label, items, onAddModule, onDeleteSection, onU
 // ============================================================
 // SectionHeader — always-visible label + hover buttons
 // ============================================================
-function SectionHeader({ label, onAdd, onDelete }: {
-  label: string; onAdd: () => void; onDelete: () => void;
+function SectionHeader({ label, onAdd, onDelete, addLabel = "＋ 添加子模块" }: {
+  label: string; onAdd: () => void; onDelete: () => void; addLabel?: string;
 }) {
   const [hov, setHov] = useState(false);
   return (
@@ -652,8 +691,8 @@ function SectionHeader({ label, onAdd, onDelete }: {
         {label}
       </span>
       <div style={{ display: "flex", gap: 6, opacity: hov ? 1 : 0, transition: "opacity 0.2s ease", pointerEvents: hov ? "all" : "none" }}>
-        <SmallIconBtn onClick={onAdd} title="添加子模块" style={{ fontSize: 12, color: C.comment }}>
-          ＋ 添加子模块
+        <SmallIconBtn onClick={onAdd} title={addLabel} style={{ fontSize: 12, color: C.comment }}>
+          {addLabel}
         </SmallIconBtn>
         <InlineConfirm danger onConfirm={onDelete} label={
           <SmallIconBtn title="删除此分类" style={{ color: C.danger, fontSize: 12 }}>
