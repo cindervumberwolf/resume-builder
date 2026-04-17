@@ -147,11 +147,11 @@ paths:
                     type: integer
     get:
       operationId: listModules
-      summary: List all stored resume modules with bullets
-      description: Retrieve all resume modules and their associated bullets from the database.
+      summary: List all stored resume modules with bullets and user profile
+      description: Retrieve all resume modules, their associated bullets, and the user's profile (name, email, phone, linkedin_url, github_url) from the database.
       responses:
         "200":
-          description: List of modules
+          description: List of modules with profile
           content:
             application/json:
               schema:
@@ -163,6 +163,19 @@ paths:
                       type: object
                   count:
                     type: integer
+                  profile:
+                    type: object
+                    properties:
+                      display_name:
+                        type: string
+                      email:
+                        type: string
+                      phone:
+                        type: string
+                      linkedin_url:
+                        type: string
+                      github_url:
+                        type: string
 
   /api/modules/{id}:
     get:

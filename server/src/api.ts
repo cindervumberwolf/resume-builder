@@ -164,7 +164,12 @@ app.post("/api/modules", requireAuth, (req: AuthRequest, res) => {
 
 app.get("/api/modules", requireAuth, (req: AuthRequest, res) => {
   const modules = listModules(req.userId!);
-  res.json({ modules, count: modules.length });
+  const profile = getProfile(req.userId!);
+  res.json({
+    modules,
+    count: modules.length,
+    profile: profile ?? { display_name: "", email: "", phone: "", linkedin_url: "", github_url: "" },
+  });
 });
 
 app.get("/api/modules/:id", requireAuth, (req: AuthRequest, res) => {
